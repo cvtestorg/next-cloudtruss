@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -129,7 +129,7 @@ function convertTicketDataToFormData(data: Record<string, unknown>): VmCreateFor
   };
 }
 
-export default function VirtualMachineCreate() {
+function VirtualMachineCreateContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const ticketId = searchParams.get("ticketId");
@@ -312,6 +312,21 @@ export default function VirtualMachineCreate() {
         </form>
       </Form>
     </div>
+  );
+}
+
+export default function VirtualMachineCreate() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">加载中...</p>
+        </div>
+      </div>
+    }>
+      <VirtualMachineCreateContent />
+    </Suspense>
   );
 }
 
