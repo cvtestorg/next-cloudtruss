@@ -1,4 +1,4 @@
-import { api } from "@/lib/fetch";
+import { api } from "@/lib/fetch/client";
 import type {
   ApprovalResponse,
   CreateTicketRequest,

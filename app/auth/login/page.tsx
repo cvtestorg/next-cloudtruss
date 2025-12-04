@@ -22,7 +22,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Key } from "lucide-react";
 import { loginSchema, type LoginFormValues } from "@/schemas/login";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 

@@ -1,26 +1,50 @@
-import { getServerAccessToken } from "@/lib/supabase-server";
+import { supabase } from "@/lib/supabase/client";
 import { logger } from "@/lib/logger";
 
-/**
- * 服务器端 API 调用函数
- * 用于 Server Components、Server Actions 和 Route Handlers
- * 自动从 Supabase session 中获取 access_token 并添加到请求头
- */
-
-async function getToken(): Promise<string | null> {
-  const token = await getServerAccessToken();
-
-  // 打印 access_token (仅开发环境)
-  if (token) {
-    logger.log("[Server API] AccessToken:", token);
-  } else {
-    logger.warn("[Server API] AccessToken: null or missing");
+function redirectToLogin() {
+  if (typeof window !== "undefined") {
+    const currentPath = window.location.pathname;
+    // 如果不在认证页面，则跳转到登录页
+    if (!currentPath.startsWith("/auth/")) {
+      window.location.href = "/auth/login";
+    }
   }
-
-  return token;
 }
 
-const serverApi = {
+/**
+ * 客户端获取 access_token
+ * 从 Supabase session 中获取 access_token，而不是从 localStorage 读取
+ */
+async function getToken(): Promise<string | null> {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    // 从 Supabase session 中获取 access_token
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error || !session?.access_token) {
+      logger.warn("[Client API] AccessToken: null or missing, error:", error);
+      redirectToLogin();
+      return null;
+    }
+
+    // 打印 access_token (仅开发环境)
+    logger.log("[Client API] AccessToken:", session.access_token);
+
+    return session.access_token;
+  } catch (err) {
+    logger.error("[Client API] Failed to get AccessToken:", err);
+    redirectToLogin();
+    return null;
+  }
+}
+
+const api = {
   async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
     const urlObj = new URL(url);
     if (params) {
@@ -43,14 +67,12 @@ const serverApi = {
     const response = await fetch(urlObj.toString(), {
       method: "GET",
       headers,
-      cache: "no-store", // 服务器端请求通常不需要缓存
     });
 
     if (!response.ok) {
+      // 401 未授权，跳转到登录页
       if (response.status === 401) {
-        throw new Error(
-          "Unauthorized: Invalid or missing authentication token"
-        );
+        redirectToLogin();
       }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -72,14 +94,12 @@ const serverApi = {
       method: "POST",
       headers,
       body: data ? JSON.stringify(data) : undefined,
-      cache: "no-store",
     });
 
     if (!response.ok) {
+      // 401 未授权，跳转到登录页
       if (response.status === 401) {
-        throw new Error(
-          "Unauthorized: Invalid or missing authentication token"
-        );
+        redirectToLogin();
       }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -101,14 +121,12 @@ const serverApi = {
       method: "PUT",
       headers,
       body: data ? JSON.stringify(data) : undefined,
-      cache: "no-store",
     });
 
     if (!response.ok) {
+      // 401 未授权，跳转到登录页
       if (response.status === 401) {
-        throw new Error(
-          "Unauthorized: Invalid or missing authentication token"
-        );
+        redirectToLogin();
       }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -129,14 +147,12 @@ const serverApi = {
     const response = await fetch(url, {
       method: "DELETE",
       headers,
-      cache: "no-store",
     });
 
     if (!response.ok) {
+      // 401 未授权，跳转到登录页
       if (response.status === 401) {
-        throw new Error(
-          "Unauthorized: Invalid or missing authentication token"
-        );
+        redirectToLogin();
       }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -145,4 +161,4 @@ const serverApi = {
   },
 };
 
-export { serverApi };
+export { api };

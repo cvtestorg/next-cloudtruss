@@ -1,4 +1,4 @@
-import { serverApi } from "@/lib/fetch-server";
+import { serverApi } from "@/lib/fetch/server";
 import type { UserListResponse } from "@/types/user";
 
 const API_BASE_URL = "https://usercenter.gz.cvte.cn";

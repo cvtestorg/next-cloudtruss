@@ -1,4 +1,4 @@
-import { serverApi } from "@/lib/fetch-server";
+import { serverApi } from "@/lib/fetch/server";
 import type { VirtualMachineList, VirtualMachineDetail } from "@/types/vm";
 
 const API_BASE_URL = "https://virtualization-api.gz.cvte.cn";

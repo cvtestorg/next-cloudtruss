@@ -1,4 +1,4 @@
-import { serverApi } from "@/lib/fetch-server";
+import { serverApi } from "@/lib/fetch/server";
 import type {
   ApprovalResponse,
   CreateTicketRequest,

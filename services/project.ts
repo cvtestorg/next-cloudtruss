@@ -1,4 +1,4 @@
-import { api } from "@/lib/fetch";
+import { api } from "@/lib/fetch/client";
 import type { ProjectListResponse } from "@/types/project";
 
 const API_BASE_URL = "https://usercenter.gz.cvte.cn";

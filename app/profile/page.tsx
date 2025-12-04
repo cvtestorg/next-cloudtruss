@@ -21,7 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { Save, User as UserIcon, Mail, Calendar, Phone } from "lucide-react";
 import { profileSchema, type ProfileFormValues } from "@/schemas/profile";
 import { toast } from "sonner";
