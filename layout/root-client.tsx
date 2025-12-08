@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { BookOpen, ExternalLink, ChevronRight, Ticket } from "lucide-react";
 import {
@@ -29,10 +30,7 @@ import { TweakcnThemeSelector } from "@/components/theme/tweakcn-selector";
 import { cn } from "@/lib/utils";
 import { menuItems } from "@/config/menu";
 import { siteConfig } from "@/config/site";
-import { getUserInfo } from "@/lib/user-utils";
-import { useAuth } from "@/hooks/use-auth";
 
-// 根布局客户端组件：提供 SidebarProvider 上下文
 export function RootLayoutClient({
   children,
 }: {
@@ -41,55 +39,35 @@ export function RootLayoutClient({
   return <SidebarProvider>{children}</SidebarProvider>;
 }
 
-// 侧边栏内容组件
-export function SidebarContentClient() {
+export function SidebarContentClient({
+  user,
+}: {
+  user: any;
+}) {
   const pathname = usePathname();
-  const { user, loading } = useAuth();
-  const [userToggledMenus, setUserToggledMenus] = useState<
-    Record<string, boolean>
-  >({});
+  const [toggledMenus, setToggledMenus] = useState<Record<string, boolean>>(
+    {}
+  );
 
-  // 根据当前路径和默认展开配置计算应该展开的菜单
-  const autoOpenMenus = useMemo(() => {
+  const openMenus = useMemo(() => {
     const result: Record<string, boolean> = {};
     menuItems.forEach((item) => {
-      if (item.subItems) {
-        if (item.defaultOpen) {
-          result[item.title] = true;
-        }
-        const isActive = item.subItems.some(
-          (subItem) => pathname === subItem.href
-        );
-        if (isActive) {
-          result[item.title] = true;
-        }
+      if (!item.subItems) return;
+      if (item.defaultOpen || item.subItems.some((s) => s.href === pathname)) {
+        result[item.title] = true;
       }
     });
-    return result;
-  }, [pathname]);
+    return { ...result, ...toggledMenus };
+  }, [pathname, toggledMenus]);
 
-  // 合并自动展开和用户手动切换的状态
-  const openMenus = useMemo(() => {
-    return { ...autoOpenMenus, ...userToggledMenus };
-  }, [autoOpenMenus, userToggledMenus]);
-
-  const toggleMenu = (title: string) => {
-    setUserToggledMenus((prev) => ({
-      ...prev,
-      [title]: !openMenus[title],
-    }));
-  };
-
-  // 服务器端和客户端首次渲染时，确保渲染相同的加载状态
-  // useAuth hook 已经确保服务器端和客户端首次渲染时都返回 loading: true
-  if (loading || !user) {
+  if (!user) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem>
               <div className="flex items-center justify-center p-4 w-full">
-                <div className="text-sm text-muted-foreground">加载中...</div>
+                <div className="text-sm text-muted-foreground">未登录</div>
               </div>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -104,14 +82,19 @@ export function SidebarContentClient() {
         <SidebarMenu>
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isOpen = openMenus[item.title] || false;
+            const isOpen = openMenus[item.title] ?? false;
 
             if (item.subItems) {
               return (
                 <Collapsible
                   key={item.title}
                   open={isOpen}
-                  onOpenChange={() => toggleMenu(item.title)}
+                  onOpenChange={() =>
+                    setToggledMenus((prev) => ({
+                      ...prev,
+                      [item.title]: !prev[item.title],
+                    }))
+                  }
                 >
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
@@ -134,7 +117,7 @@ export function SidebarContentClient() {
                               asChild
                               isActive={pathname === subItem.href}
                             >
-                              <a href={subItem.href}>{subItem.title}</a>
+                              <Link href={subItem.href}>{subItem.title}</Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         ))}
@@ -148,10 +131,17 @@ export function SidebarContentClient() {
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton asChild isActive={pathname === item.href}>
-                  <a href={item.href}>
-                    <Icon className="size-4" />
-                    <span>{item.title}</span>
-                  </a>
+                  {item.href ? (
+                    <Link href={item.href}>
+                      <Icon className="size-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  ) : (
+                    <div>
+                      <Icon className="size-4" />
+                      <span>{item.title}</span>
+                    </div>
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );
@@ -162,22 +152,16 @@ export function SidebarContentClient() {
   );
 }
 
-// 侧边栏底部组件
-export function SidebarFooterClient() {
-  const { user, loading } = useAuth();
-
-  // 服务器端和客户端首次渲染时，确保渲染相同的加载状态
-  // useAuth hook 已经确保服务器端和客户端首次渲染时都返回 loading: true
-  if (loading || !user) {
-    return (
-      <SidebarFooter>
-        <div className="flex items-center justify-center p-4">
-          <div className="text-sm text-muted-foreground">加载中...</div>
-        </div>
-      </SidebarFooter>
-    );
-  }
-
+export function SidebarFooterClient({
+  userInfo,
+}: {
+  userInfo: {
+    name: string;
+    email: string;
+    avatar: string;
+    initials?: string;
+  };
+}) {
   return (
     <SidebarFooter>
       <SidebarMenu>
@@ -201,7 +185,7 @@ export function SidebarFooterClient() {
           </>
         )}
       </SidebarMenu>
-      <NavUser user={getUserInfo(user)} />
+      <NavUser user={userInfo} />
       <div className="flex items-center gap-2 px-2">
         <div className="flex-1">
           <DarkLightToggle />
@@ -215,7 +199,6 @@ export function SidebarFooterClient() {
   );
 }
 
-// 顶部栏组件
 export function HeaderClient() {
   const router = useRouter();
 

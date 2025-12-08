@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { CheckCircle2, XCircle } from "lucide-react";
-import { getTickets, getApproval, deleteTicket } from "@/services/ticket";
+import { getTicketsAction, getApprovalAction, deleteTicketAction } from "@/actions/ticket";
 import type { TicketListResponse, ApprovalResponse } from "@/types/ticket";
 import {
   Table,
@@ -112,7 +112,7 @@ export default function ApprovalList() {
         setIsLoading(true);
       }
       try {
-        const result = await getTickets(queryParams);
+        const result = await getTicketsAction(queryParams);
         setData(result);
         setIsLoading(false);
       } catch (err) {
@@ -138,7 +138,7 @@ export default function ApprovalList() {
       setIsLoadingApproval(true);
       setApprovalError(null);
       try {
-        const result = await getApproval(selectedApprovalId);
+        const result = await getApprovalAction(selectedApprovalId);
         setApprovalData(result);
       } catch (err) {
         setApprovalError(err instanceof Error ? err : new Error("未知错误"));
@@ -182,7 +182,7 @@ export default function ApprovalList() {
 
     setIsDeleting(true);
     try {
-      await deleteTicket(deleteTicketId);
+      await deleteTicketAction(deleteTicketId);
       toast.success("删除申请单成功", {
         icon: <CheckCircle2 className="h-4 w-4" />,
       });

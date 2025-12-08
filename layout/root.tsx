@@ -1,3 +1,5 @@
+import { headers } from "next/headers";
+import { LayoutGrid } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -5,7 +7,9 @@ import {
   SidebarHeader as SidebarHeaderComponent,
   SidebarInset,
 } from "@/components/ui/sidebar";
-import { SidebarHeader } from "./sidebar-header";
+import { siteConfig } from "@/config/site";
+import { getServerUser } from "@/lib/auth/server";
+import { getUserInfo } from "@/lib/user-utils";
 import {
   SidebarContentClient,
   SidebarFooterClient,
@@ -13,24 +17,43 @@ import {
   RootLayoutClient,
 } from "./root-client";
 
-export function RootLayoutClientWrapper({
+export async function ConditionalLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // 注意：认证页面的布局在 app/auth/layout.tsx 中单独处理
-  // 这里只处理需要侧边栏的页面
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "";
+
+  // 认证页面不显示侧边栏
+  if (pathname === "/auth/login") {
+    return <>{children}</>;
+  }
+
+  // 获取用户信息
+  const user = await getServerUser();
+  const userInfo = getUserInfo(user);
+
+  // 其他页面显示侧边栏
   return (
     <RootLayoutClient>
       <Sidebar>
         <SidebarHeaderComponent>
-          <SidebarHeader />
+          <div className="flex flex-col gap-1 px-2 py-2">
+            <div className="flex items-center gap-2">
+              <LayoutGrid className="size-5 text-primary" />
+              <span className="font-semibold text-lg">{siteConfig.name}</span>
+            </div>
+            <p className="text-xs text-muted-foreground px-7 line-clamp-2">
+              {siteConfig.description}
+            </p>
+          </div>
         </SidebarHeaderComponent>
         <SidebarContent>
-          <SidebarContentClient />
+          <SidebarContentClient user={user} />
         </SidebarContent>
         <SidebarFooter>
-          <SidebarFooterClient />
+          <SidebarFooterClient userInfo={userInfo} />
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>

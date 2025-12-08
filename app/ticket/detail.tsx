@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { getApproval } from "@/services/ticket";
+import { getApprovalAction } from "@/actions/ticket";
 import type { ApprovalResponse } from "@/types/ticket";
 
 export default function ApprovalDetail() {
@@ -22,7 +22,7 @@ export default function ApprovalDetail() {
     const fetchApproval = async () => {
       try {
         setIsLoading(true);
-        const result = await getApproval(approvalId);
+        const result = await getApprovalAction(approvalId);
         setData(result);
         console.log("审批数据:", result);
       } catch (err) {

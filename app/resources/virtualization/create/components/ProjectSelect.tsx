@@ -15,7 +15,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { getProjects } from "@/services/project";
+import { getProjectsAction } from "@/actions/project";
 import type { ProjectListResponse } from "@/types/project";
 
 interface ProjectSelectProps {
@@ -72,7 +72,7 @@ export function ProjectSelect({
         setIsLoading(true);
       }
       try {
-        const result = await getProjects({
+        const result = await getProjectsAction({
     page: currentPage,
     page_size: pageSize,
     search: debouncedSearch,

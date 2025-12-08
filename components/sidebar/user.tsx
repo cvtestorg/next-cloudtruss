@@ -7,8 +7,7 @@ import {
   User as UserIcon,
   Settings,
 } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth";
-import { getUserInitials } from "@/lib/user-utils";
+import { signOutAction } from "@/actions/auth";
 
 import {
   Avatar,
@@ -38,11 +37,11 @@ export function NavUser({
     name: string
     email: string
     avatar: string
+    initials?: string
   }
 }) {
   const { isMobile } = useSidebar();
   const router = useRouter();
-  const { signOut } = useAuth();
 
   return (
     <SidebarMenu>
@@ -56,7 +55,7 @@ export function NavUser({
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">
-                  {getUserInitials(user.name, user.email)}
+                  {user.initials || user.name.slice(0, 1).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -77,7 +76,7 @@ export function NavUser({
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
                   <AvatarFallback className="rounded-lg">
-                    {getUserInitials(user.name)}
+                    {user.initials || user.name.slice(0, 1).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -98,7 +97,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={signOut}>
+            <DropdownMenuItem onClick={() => signOutAction()}>
               <LogOut className="mr-2 size-4" />
               <span>退出登录</span>
             </DropdownMenuItem>

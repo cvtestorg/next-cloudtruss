@@ -1,16 +1,14 @@
 "use server";
 
-import { getUsersServer } from "@/services/user-server";
+import { serverApi } from "@/lib/fetch/server";
 import type { UserListResponse } from "@/types/user";
 
-/**
- * Server Action: 获取用户列表
- * 使用服务器端 API 调用，自动传递 access_token
- */
+const API_BASE_URL = "https://usercenter.gz.cvte.cn";
+
 export async function getUsersAction(params: {
   page: number;
   page_size: number;
   search: string;
 }): Promise<UserListResponse> {
-  return await getUsersServer(params);
+  return serverApi.get<UserListResponse>(`${API_BASE_URL}/users`, params);
 }

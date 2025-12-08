@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { siteConfig } from "@/config/site";
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { TweakcnThemeProvider } from "@/components/theme/tweakcn-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { ConditionalLayout } from "@/layout/conditional-layout";
+import { ConditionalLayout } from "@/layout/root";
+import { NextAuthSessionProvider } from "@/components/providers/session-provider";
 
 export const metadata: Metadata = {
   title: {
@@ -44,10 +46,14 @@ export default function RootLayout({
   return (
     <html lang={siteConfig.locale} suppressHydrationWarning>
       <body className="antialiased">
-        <ThemeProvider>
-          <ConditionalLayout>{children}</ConditionalLayout>
-          <Toaster />
-        </ThemeProvider>
+        <NextAuthSessionProvider>
+          <ThemeProvider>
+            <TweakcnThemeProvider>
+              <ConditionalLayout>{children}</ConditionalLayout>
+              <Toaster />
+            </TweakcnThemeProvider>
+          </ThemeProvider>
+        </NextAuthSessionProvider>
       </body>
     </html>
   );

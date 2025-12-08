@@ -25,7 +25,7 @@ import {
   vmCreateFormSchema,
   type VmCreateFormData,
 } from "./schemas/vm-create-schema";
-import { getTicketDetail, createTicket, updateTicket } from "@/services/ticket";
+import { getTicketDetailAction, createTicketAction, updateTicketAction } from "@/actions/ticket";
 import type { TicketDetailResponse } from "@/types/ticket";
 
 // 获取默认过期时间（当前日期加一年）
@@ -148,7 +148,7 @@ function VirtualMachineCreateContent() {
     const fetchTicketDetail = async () => {
       setIsLoadingTicket(true);
       try {
-        const result = await getTicketDetail(ticketId);
+        const result = await getTicketDetailAction(ticketId);
         setTicketDetail(result);
       } catch (error) {
         console.error("获取工单详情失败:", error);
@@ -210,7 +210,7 @@ function VirtualMachineCreateContent() {
         const ticketStatus = ticketDetail?.data?.data?.status;
         const currentStatus = (ticketStatus || "pending") as string;
 
-        await updateTicket(ticketId, {
+        await updateTicketAction(ticketId, {
           data: submitData,
           status: currentStatus,
         });
@@ -224,7 +224,7 @@ function VirtualMachineCreateContent() {
         const hostCount = data.hosts.length;
         const title = `申请虚拟机 (${hostCount}) 台)`;
         
-        await createTicket({
+        await createTicketAction({
           title,
           data: submitData,
         });

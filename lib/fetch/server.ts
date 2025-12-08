@@ -1,23 +1,13 @@
-import { getServerAccessToken } from "@/lib/supabase/server";
-import { logger } from "@/lib/logger";
+import { getServerAccessToken } from "@/lib/auth/server";
 
 /**
  * 服务器端 API 调用函数
  * 用于 Server Components、Server Actions 和 Route Handlers
- * 自动从 Supabase session 中获取 access_token 并添加到请求头
+ * 自动从 NextAuth session 中获取 access_token 并添加到请求头
  */
 
 async function getToken(): Promise<string | null> {
-  const token = await getServerAccessToken();
-
-  // 打印 access_token (仅开发环境)
-  if (token) {
-    logger.log("[Server API] AccessToken:", token);
-  } else {
-    logger.warn("[Server API] AccessToken: null or missing");
-  }
-
-  return token;
+  return await getServerAccessToken();
 }
 
 const serverApi = {

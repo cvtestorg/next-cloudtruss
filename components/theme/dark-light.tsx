@@ -22,7 +22,6 @@ export function DarkLightToggle() {
         <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
       </div>
       <span className="text-sm">亮暗</span>
-      <span className="sr-only">切换主题</span>
     </SidebarMenuButton>
   );
 }

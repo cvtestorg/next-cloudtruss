@@ -1,71 +1,32 @@
-import { createServerClient } from "@supabase/ssr";
+import { auth } from "@/auth";
+import { AuthLoginRoute, DEFAULT_LOGIN_REDIRECT } from "@/config/routes";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const isAuthPage = pathname.startsWith("/auth");
-
-  // 认证页面不需要检查登录状态
-  if (isAuthPage) {
-    return NextResponse.next();
+export default auth((req) => {
+  // 如果未认证，则重定向到登录页
+  if (!req.auth && req.nextUrl.pathname !== AuthLoginRoute) {
+    const newUrl = new URL(AuthLoginRoute, req.nextUrl.origin);
+    return Response.redirect(newUrl);
+  }
+  // 如果已认证，则重定向到默认首页
+  if (req.auth && req.nextUrl.pathname === AuthLoginRoute) {
+    const newUrl = new URL(DEFAULT_LOGIN_REDIRECT, req.nextUrl.origin);
+    return Response.redirect(newUrl);
   }
 
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
-
-  // 创建 Supabase 客户端用于检测用户登录状态
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => {
-            request.cookies.set(name, value);
-          });
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) => {
-            supabaseResponse.cookies.set(name, value, options);
-          });
-        },
-      },
-    }
-  );
-
-  // 检测用户是否存在
-  // 注意：这里只检测用户状态，不主动刷新 token
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // 如果没有用户且不是认证页面，重定向到登录页
-  if (!user) {
-    const redirectUrl = new URL("/auth/login", request.url);
-    redirectUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  // 有用户，继续请求
-  // 重要：必须返回 supabaseResponse 对象，以确保 cookies 正确同步
-  return supabaseResponse;
-}
+  // 设置路径 header 供服务端组件使用
+  const response = NextResponse.next();
+  response.headers.set("x-pathname", req.nextUrl.pathname);
+  return response;
+});
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  /*
+   * Match all request paths except for the ones starting with:
+   * - api/auth (auth API routes)
+   * - _next/static (static files)
+   * - _next/image (image optimization files)
+   * - favicon.ico (favicon file)
+   */
+  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
 };
