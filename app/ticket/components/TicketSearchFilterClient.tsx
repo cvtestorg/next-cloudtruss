@@ -1,3 +1,7 @@
+"use client";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -15,27 +19,51 @@ export interface FilterParams {
   typeId: string;
 }
 
-interface TicketSearchFilterProps {
-  filters: FilterParams;
-  onFilterChange: (filters: FilterParams) => void;
-  onReset: () => void;
-}
+export function TicketSearchFilterClient() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-export function TicketSearchFilter({
-  filters,
-  onFilterChange,
-  onReset,
-}: TicketSearchFilterProps) {
+  const filters = useMemo<FilterParams>(
+    () => ({
+      search: searchParams.get("search") || "",
+      status: searchParams.get("status") || "pending",
+      typeId: searchParams.get("typeId") || "all",
+    }),
+    [searchParams]
+  );
+
+  const updateFilters = useCallback(
+    (newFilters: Partial<FilterParams>) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      Object.entries(newFilters).forEach(([key, value]) => {
+        if (value && value !== "all") {
+          params.set(key, value);
+        } else {
+          params.delete(key);
+        }
+      });
+
+      params.set("page", "1");
+      router.push(`?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
+
   const handleSearchChange = (value: string) => {
-    onFilterChange({ ...filters, search: value });
+    updateFilters({ search: value });
   };
 
   const handleStatusChange = (value: string) => {
-    onFilterChange({ ...filters, status: value });
+    updateFilters({ status: value });
   };
 
   const handleTypeChange = (value: string) => {
-    onFilterChange({ ...filters, typeId: value });
+    updateFilters({ typeId: value });
+  };
+
+  const handleReset = () => {
+    router.push("/ticket");
   };
 
   const hasActiveFilters =
@@ -79,7 +107,7 @@ export function TicketSearchFilter({
         </Select>
 
         {hasActiveFilters && (
-          <Button variant="outline" size="icon" onClick={onReset}>
+          <Button variant="outline" size="icon" onClick={handleReset}>
             <X className="h-4 w-4" />
           </Button>
         )}
@@ -87,4 +115,3 @@ export function TicketSearchFilter({
     </div>
   );
 }
-

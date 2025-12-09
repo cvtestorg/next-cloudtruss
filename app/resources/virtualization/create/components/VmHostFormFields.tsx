@@ -35,8 +35,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-// 暂时注释掉，用于调试布局 - 隐藏字段对所有用户可见
-// import { useIsResourceAdmin } from "@/utils/role";
 import type { VmCreateFormData } from "../schemas/vm-create-schema";
 
 export function VmHostFormFields() {
@@ -45,9 +43,7 @@ export function VmHostFormFields() {
     control,
     name: "hosts",
   });
-  // 暂时注释掉，用于调试布局 - 隐藏字段对所有用户可见
-  // const isResourceAdmin = useIsResourceAdmin();
-  
+
   // 配置拖拽传感器
   const sensors = useSensors(
     useSensor(PointerSensor, {

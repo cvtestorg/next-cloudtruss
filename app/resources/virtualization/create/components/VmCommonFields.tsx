@@ -12,7 +12,6 @@ import { ProjectSelect } from "./ProjectSelect";
 import type { VmCreateFormData } from "../schemas/vm-create-schema";
 
 export function VmCommonFields() {
-
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

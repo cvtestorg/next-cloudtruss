@@ -26,6 +26,7 @@ const serverApi = {
     };
 
     const token = await getToken();
+    // console.log("token", token);
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }

@@ -1,3 +1,7 @@
+"use client";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,32 +20,66 @@ export interface FilterParams {
   env: string;
 }
 
-interface VmSearchFilterProps {
-  filters: FilterParams;
-  onFilterChange: (filters: FilterParams) => void;
-  onReset: () => void;
-}
+export function VmSearchFilterClient() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-export function VmSearchFilter({
-  filters,
-  onFilterChange,
-  onReset,
-}: VmSearchFilterProps) {
+  const filters = useMemo<FilterParams>(
+    () => ({
+      search: searchParams.get("search") || "",
+      status: searchParams.get("status") || "all",
+      powerStatus: searchParams.get("powerStatus") || "all",
+      env: searchParams.get("env") || "all",
+    }),
+    [searchParams]
+  );
+
+  const updateFilters = useCallback(
+    (newFilters: Partial<FilterParams>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      
+      // 更新过滤参数
+      Object.entries(newFilters).forEach(([key, value]) => {
+        if (value && value !== "all") {
+          params.set(key, value);
+        } else {
+          params.delete(key);
+        }
+      });
+      
+      // 重置页码到第一页
+      params.set("page", "1");
+      
+      router.push(`?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
+
   const handleSearchChange = (value: string) => {
-    onFilterChange({ ...filters, search: value });
+    updateFilters({ search: value });
   };
 
   const handleStatusChange = (value: string) => {
-    onFilterChange({ ...filters, status: value });
+    updateFilters({ status: value });
   };
 
   const handlePowerStatusChange = (value: string) => {
-    onFilterChange({ ...filters, powerStatus: value });
+    updateFilters({ powerStatus: value });
   };
 
   const handleEnvChange = (value: string) => {
-    onFilterChange({ ...filters, env: value });
+    updateFilters({ env: value });
   };
+
+  const handleReset = () => {
+    router.push("/resources/virtualization");
+  };
+
+  const hasActiveFilters =
+    filters.search ||
+    filters.status !== "all" ||
+    filters.powerStatus !== "all" ||
+    filters.env !== "all";
 
   return (
     <div className="space-y-4">
@@ -96,11 +134,12 @@ export function VmSearchFilter({
           </SelectContent>
         </Select>
 
-        <Button variant="outline" size="icon" onClick={onReset}>
-          <X className="h-4 w-4" />
-        </Button>
+        {hasActiveFilters && (
+          <Button variant="outline" size="icon" onClick={handleReset}>
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
   );
 }
-
