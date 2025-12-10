@@ -23,3 +23,12 @@ export async function getUserAction(id: string): Promise<UserInfoResponse> {
 export async function getCurrentUserAction(): Promise<UserInfoResponse> {
   return serverApi.get<UserInfoResponse>(`${API_BASE_URL}/users/me`);
 }
+
+/* 更新当前登录的用户信息 */
+export async function updateCurrentUserAction(data: {
+  real_name?: string;
+  phone?: string;
+  avatar?: string;
+}): Promise<UserInfoResponse> {
+  return serverApi.put<UserInfoResponse>(`${API_BASE_URL}/users/me`, data);
+}
