@@ -1,7 +1,7 @@
-import type { VmCreateFormData } from "../schemas/vm-create-schema";
+import type { VmCreateFormData } from "@/schemas/vm-create";
 import type { TicketDetailResponse } from "@/types/ticket";
 
-// 获取默认过期时间（当前日期加一年）
+// 获取默认过期时间(当前日期加一年)
 export function getDefaultExpiryDate(): Date {
   const date = new Date();
   date.setFullYear(date.getFullYear() + 1);

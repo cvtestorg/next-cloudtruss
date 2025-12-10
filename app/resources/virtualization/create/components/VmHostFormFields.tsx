@@ -35,7 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import type { VmCreateFormData } from "../schemas/vm-create-schema";
+import type { VmCreateFormData } from "@/schemas/vm-create";
 
 export function VmHostFormFields() {
   const { control, setValue, getValues } = useFormContext<VmCreateFormData>();

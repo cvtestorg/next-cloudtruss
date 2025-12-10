@@ -14,6 +14,7 @@ export interface VirtualMachineFilters {
   env?: string;
 }
 
+/* 获取虚拟机列表 */
 export async function getVirtualMachinesAction(
   filters: VirtualMachineFilters = {}
 ): Promise<VirtualMachineList> {
@@ -33,6 +34,7 @@ export async function getVirtualMachinesAction(
   return serverApi.get<VirtualMachineList>(`${API_BASE_URL}/vm`, params);
 }
 
+/* 获取虚拟机详情 */
 export async function getVirtualMachineDetailAction(
   vmId: string
 ): Promise<VirtualMachineDetail> {

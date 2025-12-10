@@ -9,7 +9,7 @@ import {
 import { DatePicker } from "./DatePicker";
 import { UserSelect } from "./UserSelect";
 import { ProjectSelect } from "./ProjectSelect";
-import type { VmCreateFormData } from "../schemas/vm-create-schema";
+import type { VmCreateFormData } from "@/schemas/vm-create";
 
 export function VmCommonFields() {
   return (

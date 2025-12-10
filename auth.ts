@@ -34,10 +34,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }) {
+      // 解析 URL
+      const urlObj = new URL(url, baseUrl);
+
+      // 如果重定向到登录页且有 callbackUrl 参数，提取 callbackUrl 并重定向
+      if (urlObj.pathname === "/auth/login") {
+        const callbackUrl = urlObj.searchParams.get("callbackUrl");
+        if (callbackUrl) {
+          // 解码并返回 callbackUrl
+          return `${baseUrl}${decodeURIComponent(callbackUrl)}`;
+        }
+      }
+
       // 如果 URL 是相对路径，使用 baseUrl
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       // 如果 URL 是同一个域名，允许重定向
-      if (new URL(url).origin === baseUrl) return url;
+      if (urlObj.origin === baseUrl) return url;
       // 否则重定向到默认首页
       return `${baseUrl}${DEFAULT_LOGIN_REDIRECT}`;
     },

@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -23,21 +25,6 @@ interface DiskTableProps {
 }
 
 export function DiskTable({ disks }: DiskTableProps) {
-  const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleString("zh-CN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
   if (!disks || disks.length === 0) {
     return (
       <div className="rounded-lg border p-8 text-center text-muted-foreground">
@@ -51,7 +38,6 @@ export function DiskTable({ disks }: DiskTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
             <TableHead>磁盘名</TableHead>
             <TableHead>状态</TableHead>
             <TableHead>系统盘</TableHead>
@@ -59,18 +45,12 @@ export function DiskTable({ disks }: DiskTableProps) {
             <TableHead>大小</TableHead>
             <TableHead>挂载点</TableHead>
             <TableHead>是否删除</TableHead>
-            <TableHead>创建</TableHead>
-            <TableHead>修改</TableHead>
-            <TableHead>同步</TableHead>
             <TableHead>备注</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {disks.map((disk) => (
             <TableRow key={disk.id}>
-              <TableCell className="font-mono text-sm">
-                {disk.vdisk_id || disk.id}
-              </TableCell>
               <TableCell>{disk.name}</TableCell>
               <TableCell>
                 <StatusBadge status={disk.status} />
@@ -121,9 +101,6 @@ export function DiskTable({ disks }: DiskTableProps) {
                   {disk.is_deleted ? "true" : "false"}
                 </Badge>
               </TableCell>
-              <TableCell>{formatDate(disk.created_at)}</TableCell>
-              <TableCell>{formatDate(disk.updated_at)}</TableCell>
-              <TableCell>{formatDate(disk.sync_time)}</TableCell>
               <TableCell>
                 {disk.extra ? (
                   <Tooltip>

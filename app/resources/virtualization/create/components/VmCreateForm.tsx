@@ -23,7 +23,7 @@ import { VmHostFormFields } from "./VmHostFormFields";
 import {
   vmCreateFormSchema,
   type VmCreateFormData,
-} from "../schemas/vm-create-schema";
+} from "@/schemas/vm-create";
 import { createTicketAction, updateTicketAction } from "@/actions/ticket";
 import type { TicketDetailResponse } from "@/types/ticket";
 

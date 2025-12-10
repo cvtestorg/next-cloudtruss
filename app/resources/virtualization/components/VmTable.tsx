@@ -9,9 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Copy } from "lucide-react";
+import { toast } from "sonner";
 import { StatusBadge } from "./StatusBadge";
-import { PowerStatusBadge } from "./PowerStatusBadge";
 import { VmContextMenu } from "./VmContextMenu";
+import { UserBadge } from "./UserBadge";
+import { EnvBadge } from "./EnvBadge";
 import type { VirtualMachineItem } from "@/types/vm";
 
 interface VmTableProps {
@@ -30,20 +34,17 @@ export function VmTable({ vms, onVmAction }: VmTableProps) {
             <TableHead>名称</TableHead>
             <TableHead>主机名</TableHead>
             <TableHead>地址</TableHead>
-            <TableHead>CPU</TableHead>
-            <TableHead>内存</TableHead>
+            <TableHead>CPU/内存</TableHead>
             <TableHead>状态</TableHead>
-            <TableHead>电源状态</TableHead>
             <TableHead>所有者</TableHead>
             <TableHead>应用</TableHead>
             <TableHead>环境</TableHead>
-            <TableHead>角色</TableHead>
             <TableHead>vCenter</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <TableRow>
-            <TableCell colSpan={12} className="text-center text-muted-foreground">
+            <TableCell colSpan={9} className="text-center text-muted-foreground">
               暂无数据
             </TableCell>
           </TableRow>
@@ -59,14 +60,11 @@ export function VmTable({ vms, onVmAction }: VmTableProps) {
           <TableHead>名称</TableHead>
           <TableHead>主机名</TableHead>
           <TableHead>地址</TableHead>
-          <TableHead>CPU</TableHead>
-          <TableHead>内存</TableHead>
+          <TableHead>CPU/内存</TableHead>
           <TableHead>状态</TableHead>
-          <TableHead>电源状态</TableHead>
           <TableHead>所有者</TableHead>
           <TableHead>应用</TableHead>
           <TableHead>环境</TableHead>
-          <TableHead>角色</TableHead>
           <TableHead>vCenter</TableHead>
         </TableRow>
       </TableHeader>
@@ -86,19 +84,43 @@ export function VmTable({ vms, onVmAction }: VmTableProps) {
               </VmContextMenu>
             </TableCell>
             <TableCell>{vm.hostname}</TableCell>
-            <TableCell>{vm.address}</TableCell>
-            <TableCell>{vm.cpu}</TableCell>
-            <TableCell>{vm.memory} GB</TableCell>
+            <TableCell>
+              {vm.address ? (
+                <div className="flex items-center gap-1">
+                  <span className="font-mono text-sm">{vm.address}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(vm.address);
+                        toast.success("已复制到剪贴板", {
+                          icon: <Copy className="h-4 w-4" />,
+                        });
+                      } catch {
+                        toast.error("复制失败");
+                      }
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                "-"
+              )}
+            </TableCell>
+            <TableCell>{`${vm.cpu} C / ${vm.memory} GB`}</TableCell>
             <TableCell>
               <StatusBadge status={vm.status} />
             </TableCell>
             <TableCell>
-              <PowerStatusBadge powerStatus={vm.power_status} />
+              <UserBadge userId={vm.owner} />
             </TableCell>
-            <TableCell>{vm.owner}</TableCell>
             <TableCell>{vm.application}</TableCell>
-            <TableCell>{vm.env}</TableCell>
-            <TableCell>{vm.role}</TableCell>
+            <TableCell>
+              <EnvBadge env={vm.env} />
+            </TableCell>
             <TableCell>{vm.vcenter}</TableCell>
           </TableRow>
         ))}

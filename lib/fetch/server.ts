@@ -1,13 +1,27 @@
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { getServerAccessToken } from "@/lib/auth/server";
+import { AuthLoginRoute } from "@/config/routes";
 
 /**
  * 服务器端 API 调用函数
  * 用于 Server Components、Server Actions 和 Route Handlers
  * 自动从 NextAuth session 中获取 access_token 并添加到请求头
+ * 当遇到 401 错误时，自动重定向到登录页
  */
 
 async function getToken(): Promise<string | null> {
   return await getServerAccessToken();
+}
+
+/**
+ * 处理 401 未授权错误，重定向到登录页
+ */
+async function handleUnauthorized(): Promise<never> {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "/";
+  const callbackUrl = encodeURIComponent(pathname);
+  redirect(`${AuthLoginRoute}?callbackUrl=${callbackUrl}`);
 }
 
 const serverApi = {
@@ -39,9 +53,7 @@ const serverApi = {
 
     if (!response.ok) {
       if (response.status === 401) {
-        throw new Error(
-          "Unauthorized: Invalid or missing authentication token"
-        );
+        await handleUnauthorized();
       }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -68,9 +80,7 @@ const serverApi = {
 
     if (!response.ok) {
       if (response.status === 401) {
-        throw new Error(
-          "Unauthorized: Invalid or missing authentication token"
-        );
+        await handleUnauthorized();
       }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -97,9 +107,7 @@ const serverApi = {
 
     if (!response.ok) {
       if (response.status === 401) {
-        throw new Error(
-          "Unauthorized: Invalid or missing authentication token"
-        );
+        await handleUnauthorized();
       }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -125,9 +133,7 @@ const serverApi = {
 
     if (!response.ok) {
       if (response.status === 401) {
-        throw new Error(
-          "Unauthorized: Invalid or missing authentication token"
-        );
+        await handleUnauthorized();
       }
       throw new Error(`HTTP error! status: ${response.status}`);
     }

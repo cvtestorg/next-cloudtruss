@@ -1,5 +1,9 @@
+import { Suspense } from "react";
 import { getVirtualMachinesAction } from "@/actions/vm";
-import { VmPageClient } from "./components/VmPageClient";
+import { VmSearchFilterClient } from "./components/VmSearchFilterClient";
+import { VmTable } from "./components/VmTable";
+import { VmPaginationClient } from "./components/VmPaginationClient";
+import { VmCreateButton } from "./components/VmCreateButton";
 
 interface PageProps {
   searchParams: Promise<{
@@ -27,10 +31,27 @@ export default async function VirtualizationPage({ searchParams }: PageProps) {
   });
 
   return (
-    <VmPageClient
-      vms={data.items}
-      currentPage={page}
-      totalPages={data.pages}
-    />
+    <div className="space-y-6 w-full min-w-0">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+        <div className="flex-1 w-full min-w-0">
+          <Suspense fallback={<div className="h-10 bg-muted rounded-md animate-pulse" />}>
+            <VmSearchFilterClient />
+          </Suspense>
+        </div>
+        <VmCreateButton />
+      </div>
+
+      <div className="rounded-lg border w-full min-w-0 overflow-hidden">
+        <div className="overflow-x-auto">
+          <VmTable vms={data.items} />
+        </div>
+      </div>
+
+      {data.pages > 1 && (
+        <Suspense fallback={<div className="h-10 bg-muted rounded-md animate-pulse" />}>
+          <VmPaginationClient currentPage={page} totalPages={data.pages} />
+        </Suspense>
+      )}
+    </div>
   );
 }
