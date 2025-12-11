@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/theme/theme-provider";
 import { TweakcnThemeProvider } from "@/components/theme/tweakcn-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { ConditionalLayout } from "@/layout/root";
-import { NextAuthSessionProvider } from "@/components/providers/session-provider";
+import { SessionProvider } from "@/components/providers/session-provider";
 
 export const metadata: Metadata = {
   title: {
@@ -46,14 +46,14 @@ export default function RootLayout({
   return (
     <html lang={siteConfig.locale} suppressHydrationWarning>
       <body className="antialiased">
-        <NextAuthSessionProvider>
+        <SessionProvider>
           <ThemeProvider>
             <TweakcnThemeProvider>
               <ConditionalLayout>{children}</ConditionalLayout>
               <Toaster />
             </TweakcnThemeProvider>
           </ThemeProvider>
-        </NextAuthSessionProvider>
+        </SessionProvider>
       </body>
     </html>
   );

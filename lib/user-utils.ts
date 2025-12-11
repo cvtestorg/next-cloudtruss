@@ -1,4 +1,10 @@
-import type { User } from "next-auth";
+type User = {
+  id: string;
+  email?: string | null;
+  name?: string | null;
+  image?: string | null;
+  accessToken?: string | null;
+};
 
 export function getUserDisplayName(user: User | null): string {
   if (!user) return "用户";

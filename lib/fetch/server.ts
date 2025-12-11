@@ -6,7 +6,7 @@ import { AuthLoginRoute } from "@/config/routes";
 /**
  * 服务器端 API 调用函数
  * 用于 Server Components、Server Actions 和 Route Handlers
- * 自动从 NextAuth session 中获取 access_token 并添加到请求头
+ * 自动从 Better Auth session 中获取 access_token 并添加到请求头
  * 当遇到 401 错误时，自动重定向到登录页
  */
 
@@ -40,7 +40,6 @@ const serverApi = {
     };
 
     const token = await getToken();
-    // console.log("token", token);
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }

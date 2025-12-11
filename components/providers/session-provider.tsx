@@ -1,11 +1,13 @@
-"use client"
+"use client";
 
-import { SessionProvider } from "next-auth/react"
+import { ReactNode } from "react";
 
-export function NextAuthSessionProvider({
+// Better Auth 不需要 SessionProvider，session 通过 API 获取
+// 这个组件保留是为了兼容性，但不再需要任何 provider
+export function SessionProvider({
   children,
 }: {
-  children: React.ReactNode
+  children: ReactNode;
 }) {
-  return <SessionProvider>{children}</SessionProvider>
+  return <>{children}</>;
 }

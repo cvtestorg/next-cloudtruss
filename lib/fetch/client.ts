@@ -1,8 +1,8 @@
 "use client";
 
-import { getSession } from "next-auth/react";
+import { authClient } from "@/lib/auth/client";
 
 export async function getAccessToken(): Promise<string | null> {
-  const session = await getSession();
-  return (session?.access_token as string) || null;
+  const session = await authClient.getSession();
+  return (session?.data?.user?.accessToken as string) || null;
 }
