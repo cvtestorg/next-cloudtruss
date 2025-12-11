@@ -42,38 +42,59 @@ export function VmDetailTabs({ disks, networks }: VmDetailTabsProps) {
 
   return (
     <Tabs defaultValue={defaultValue} className="w-full">
-      <TabsList>
+      <TabsList className="w-full">
         {hasDisks && (
-          <TabsTrigger value="disk" className="px-10">
+          <TabsTrigger 
+            value="disk" 
+            className="px-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md"
+          >
             <HardDrive className="h-4 w-4" />
             硬盘
           </TabsTrigger>
         )}
         {hasSnapshots && (
-          <TabsTrigger value="snapshot" className="px-10">
+          <TabsTrigger 
+            value="snapshot" 
+            className="px-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md"
+          >
             <Camera className="h-4 w-4" />
             快照
           </TabsTrigger>
         )}
         {hasNetworks && (
-          <TabsTrigger value="network" className="px-10">
+          <TabsTrigger 
+            value="network" 
+            className="px-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md"
+          >
             <Network className="h-4 w-4" />
             网卡
           </TabsTrigger>
         )}
-        <TabsTrigger value="monitor" className="px-10">
+        <TabsTrigger 
+          value="monitor" 
+          className="px-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md"
+        >
           <Activity className="h-4 w-4" />
           监控信息
         </TabsTrigger>
-        <TabsTrigger value="monitor-agentless" className="px-10">
+        <TabsTrigger 
+          value="monitor-agentless" 
+          className="px-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md"
+        >
           <LineChart className="h-4 w-4" />
           监控信息(Agentless)
         </TabsTrigger>
-        <TabsTrigger value="logs" className="px-10">
+        <TabsTrigger 
+          value="logs" 
+          className="px-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md"
+        >
           <FileText className="h-4 w-4" />
           操作记录
         </TabsTrigger>
-        <TabsTrigger value="help" className="px-10">
+        <TabsTrigger 
+          value="help" 
+          className="px-10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md"
+        >
           <BookOpen className="h-4 w-4" />
           帮助文档
         </TabsTrigger>

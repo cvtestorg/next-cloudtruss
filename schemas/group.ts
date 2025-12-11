@@ -37,3 +37,9 @@ export const createFormSchema = (isUpdateMode: boolean) => {
       .max(50, "创建者域账号不能超过 50 个字符"),
   });
 };
+
+/**
+ * 表单数据类型
+ * 从 Schema 推导，确保类型一致性
+ */
+export type FormData = z.infer<ReturnType<typeof createFormSchema>>;

@@ -1,6 +1,7 @@
-// @ts-nocheck
+"use client";
+
 import { useRef, useEffect, type ReactNode } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import {
   Clock,
 } from "lucide-react";
 import type { SSEEventType } from "@/services/group";
-import type { LogMessage } from "./types";
+import type { LogMessage } from "@/types/group";
 
 /**
  * 群组日志组件的属性
@@ -92,16 +93,16 @@ const renderLogData = (log: LogMessage): ReactNode | null => {
   switch (log.step) {
     case "start":
       return (
-        <div className="mt-1 flex flex-wrap gap-1.5">
+        <div className="mt-1 flex flex-wrap gap-2">
           {data.group_name && (
-            <Badge variant="secondary" className="text-[10px] h-5 font-normal px-1.5">
-              <Hash className="size-2.5 mr-0.5" />
+            <Badge variant="default" className="text-[10px] h-5 font-normal px-1.5">
+              <Hash className="size-3 mr-1" />
               {String(data.group_name)}
             </Badge>
           )}
           {data.total_members !== undefined && (
-            <Badge variant="secondary" className="text-[10px] h-5 font-normal px-1.5">
-              <Users className="size-2.5 mr-0.5" />
+            <Badge variant="default" className="text-[10px] h-5 font-normal px-1.5">
+              <Users className="size-3 mr-1" />
               {data.total_members} 人
             </Badge>
           )}
@@ -116,7 +117,7 @@ const renderLogData = (log: LogMessage): ReactNode | null => {
       return (
         <div className="mt-1">
           {data.owner_id && (
-            <Badge variant="secondary" className="font-mono text-[10px] h-5 font-normal px-1.5">
+            <Badge variant="default" className="font-mono text-[10px] h-5 font-normal px-1.5">
               {String(data.owner_id)}
             </Badge>
           )}
@@ -255,16 +256,16 @@ export function GroupLogs({
   }, [logs]);
 
   return (
-    <Card className="flex flex-col h-full overflow-hidden gap-0">
-      <CardHeader className="shrink-0 pb-3 mb-4">
-        <CardTitle className="flex items-center justify-between text-base">
+    <Card className="flex flex-col h-full overflow-hidden">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-2">
             <MessageSquare className="size-4" />
             {isUpdateMode ? "更新日志" : "创建日志"}
           </span>
           {logs.length > 0 && (
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={onClearLogs}
               disabled={isSubmitting}
@@ -274,11 +275,8 @@ export function GroupLogs({
             </Button>
           )}
         </CardTitle>
-        <CardDescription className="text-xs">
-          实时显示群组{isUpdateMode ? "更新" : "创建"}过程中的详细信息
-        </CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 overflow-hidden px-6 pb-4" style={{ minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      <CardContent className="flex-1 overflow-hidden">
         {/* 进度条 */}
         {isSubmitting && (
           <div className="mb-3 shrink-0">
@@ -291,9 +289,9 @@ export function GroupLogs({
         )}
 
         {/* 固定高度的滚动区域 - 使用内联样式确保最高优先级 */}
-        <div className="flex-1 rounded-md border" style={{ minHeight: 0, overflow: 'hidden' }}>
-          <ScrollArea className="h-full w-full">
-              <div className="p-3">
+        <div className="flex-1">
+          <ScrollArea className="h-140">
+              <div>
               {logs.length === 0 ? (
                 <div className="flex min-h-[150px] items-center justify-center text-muted-foreground">
                   <div className="text-center">
@@ -310,21 +308,17 @@ export function GroupLogs({
                     const styles = getEventStyles(log.event);
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const logData = log.data as any;
-                    
-                    // 提取并渲染消息内容，避免类型检查问题
-                    const messageElement: React.ReactElement = (() => {
-                      const msg = log.message;
-                      return (
-                        <p className={`text-xs font-medium leading-snug ${styles.textColor}`}>
-                          {String(msg)}
-                        </p>
-                      );
-                    })();
+                    const messageText: string = String(log.message ?? '');
+                    const messageElement: ReactNode = (
+                      <p className={`text-xs font-medium leading-snug ${styles.textColor}`}>
+                        {messageText}
+                      </p>
+                    );
 
                     return (
                       <div
                         key={log.id}
-                        className={`rounded border p-2 ${styles.bgColor}`}
+                        className={`rounded p-2 ${styles.bgColor}`}
                       >
                         <div className="flex items-start gap-2">
                           {/* 图标 */}
@@ -366,8 +360,8 @@ export function GroupLogs({
                               )}
                             </div>
 
-                            {/* 消息 */}
-                            {messageElement as ReactNode}
+                            {/* @ts-expect-error ignore type check */}
+                            {messageElement}
 
                             {/* 渲染数据 */}
                             {renderLogData(log)}

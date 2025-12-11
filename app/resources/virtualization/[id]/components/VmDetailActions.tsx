@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RotateCw, PowerOff, Power } from "lucide-react";
+import { RotateCw, PowerCircle, Power, Shield } from "lucide-react";
 import { VmActionsMenu } from "./VmActionsMenu";
+import { PermRequest } from "./PermRequest";
 import type { VirtualMachineItem } from "@/types/vm";
 
 interface VmDetailActionsProps {
@@ -11,6 +13,8 @@ interface VmDetailActionsProps {
 }
 
 export function VmDetailActions({ vm, userAllowed }: VmDetailActionsProps) {
+  const [isPermRequestOpen, setIsPermRequestOpen] = useState(false);
+
   // 判断电源状态
   const normalizedPowerStatus = vm.power_status?.toLowerCase() || "";
   const isPoweredOn =
@@ -25,34 +29,54 @@ export function VmDetailActions({ vm, userAllowed }: VmDetailActionsProps) {
   };
 
   return (
-    <div className="flex items-center gap-3">
-      {isPoweredOff && userAllowed["can_start"] && (
-        <Button variant="outline" size="sm">
-          <Power className="h-4 w-4" />
-          开机
+    <>
+      <div className="flex items-center gap-3">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsPermRequestOpen(true)}
+          title="权限申请"
+        >
+          <Shield className="h-4 w-4" />
         </Button>
-      )}
-      {isPoweredOn && (
-        <>
-          {userAllowed["can_restart"] && (
-            <Button variant="destructive" size="sm">
-              <RotateCw className="h-4 w-4" />
-              重启
-            </Button>
-          )}
-          {userAllowed["can_shutdown"] && (
-            <Button variant="destructive" size="sm">
-              <PowerOff className="h-4 w-4" />
-              关机
-            </Button>
-          )}
-        </>
-      )}
-      <VmActionsMenu vm={vm} userAllowed={userAllowed} onAction={handleVmAction}>
-        <Button variant="outline" size="sm">
-          更多操作
-        </Button>
-      </VmActionsMenu>
-    </div>
+        {isPoweredOff && userAllowed["can_start"] && (
+          <Button variant="outline" size="sm">
+            <Power className="h-4 w-4" />
+            开机
+          </Button>
+        )}
+        {isPoweredOn && (
+          <>
+            {userAllowed["can_restart"] && (
+              <Button variant="destructive">
+                <RotateCw className="h-3 w-3" />
+                重启
+              </Button>
+            )}
+            {userAllowed["can_shutdown"] && (
+              <Button variant="destructive">
+                <PowerCircle className="h-3 w-3" />
+                关机
+              </Button>
+            )}
+          </>
+        )}
+        <VmActionsMenu
+          vm={vm}
+          userAllowed={userAllowed}
+          onAction={handleVmAction}
+        >
+          <Button variant="secondary">
+            更多操作
+          </Button>
+        </VmActionsMenu>
+      </div>
+      <PermRequest
+        vmId={vm.id}
+        userAllowed={userAllowed}
+        open={isPermRequestOpen}
+        onOpenChange={setIsPermRequestOpen}
+      />
+    </>
   );
 }

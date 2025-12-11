@@ -4,10 +4,6 @@
 export { GroupForm } from "./GroupForm";
 export { GroupLogs } from "./GroupLogs";
 export { InvalidUserIds } from "./InvalidUserIds";
-export { createFormSchema } from "@/schemas/group";
-export type {
-  FormData,
-  LogMessage,
-  SSECallbacks,
-  GroupRequestData,
-} from "./types";
+export { WxworkGroupContainer } from "./WxworkGroupContainer";
+export { createFormSchema, type FormData } from "@/schemas/group";
+export type { LogMessage, SSECallbacks, GroupRequestData } from "@/types/group";

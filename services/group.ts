@@ -80,13 +80,6 @@ export interface SSECallbacks {
 }
 
 /**
- * 获取 API 基础 URL
- */
-const getApiBaseUrl = (): string => {
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-};
-
-/**
  * 处理 SSE 流数据
  * 符合 W3C SSE 规范的标准解析器
  *
@@ -270,6 +263,8 @@ async function sendSSERequest(
   }
 }
 
+const API_BASE_URL = "https://wxwork.gz.cvte.cn";
+
 /**
  * 创建企业微信群组
  *
@@ -280,7 +275,7 @@ export async function createWxworkGroup(
   data: CreateGroupRequest,
   callbacks: SSECallbacks
 ): Promise<void> {
-  const url = `${getApiBaseUrl()}/wxwork/group/`;
+  const url = `${API_BASE_URL}/wxwork/group/`;
   await sendSSERequest(url, data, callbacks);
 }
 
@@ -294,6 +289,6 @@ export async function updateWxworkGroup(
   data: CreateGroupRequest,
   callbacks: SSECallbacks
 ): Promise<void> {
-  const url = `${getApiBaseUrl()}/wxwork/group/update`;
+  const url = `${API_BASE_URL}/wxwork/group/update`;
   await sendSSERequest(url, data, callbacks);
 }

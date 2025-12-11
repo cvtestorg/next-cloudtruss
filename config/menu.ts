@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Home, Box } from "lucide-react";
+import { Home, Box, MessageCircleCode } from "lucide-react";
 
 export interface MenuSubItem {
   title: string;
@@ -25,5 +25,11 @@ export const menuItems: MenuItem[] = [
     icon: Box,
     defaultOpen: true,
     subItems: [{ title: "1. 虚拟机管理", href: "/resources/virtualization" }],
+  },
+  {
+    title: "企业微信",
+    icon: MessageCircleCode,
+    defaultOpen: false,
+    subItems: [{ title: "1. 企微建群", href: "/wxwork/group" }],
   },
 ];

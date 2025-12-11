@@ -1,17 +1,20 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 import { createWxworkGroup, updateWxworkGroup, type SSEMessage } from "@/services/group";
-import { GroupForm, GroupLogs, type FormData, type LogMessage } from "./components";
-import { createFormSchema } from "@/schemas/group";
+import { GroupForm, GroupLogs } from "./";
+import { createFormSchema, type FormData } from "@/schemas/group";
+import type { LogMessage } from "@/types/group";
 
 /**
- * 企业微信群组管理页面
- * 支持创建和更新群组，提供实时日志反馈
+ * 企业微信群组管理容器组件
+ * 处理所有客户端交互逻辑和状态管理
  */
-export default function WxworkGroup() {
+export function WxworkGroupContainer() {
   // 模式状态：false 为创建模式，true 为更新模式
   const [isUpdateMode, setIsUpdateMode] = useState(false);
 
@@ -21,9 +24,15 @@ export default function WxworkGroup() {
   const [currentProgress, setCurrentProgress] = useState(0);
   const [invalidUserIds, setInvalidUserIds] = useState<string[]>([]);
 
-  // 初始化表单（包含调试默认值）
+  // 初始化表单
   const form = useForm<FormData>({
-    resolver: zodResolver(createFormSchema(false))
+    resolver: zodResolver(createFormSchema(false)),
+    defaultValues: {
+      group_id: "",
+      name: "",
+      members: "",
+      create_by: "",
+    },
   });
 
   // 当模式切换时，手动触发验证

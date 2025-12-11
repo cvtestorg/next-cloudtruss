@@ -1,6 +1,8 @@
+"use client";
+
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -62,11 +64,6 @@ export function GroupForm({
               <Users className="size-5" />
               {isUpdateMode ? "更新群组" : "创建群组"}
             </CardTitle>
-            <CardDescription>
-              {isUpdateMode
-                ? "填写以下信息以更新现有企业微信群组"
-                : "填写以下信息以创建新的企业微信群组"}
-            </CardDescription>
           </div>
           {/* 模式切换开关 */}
           <div className="flex items-center gap-2">
