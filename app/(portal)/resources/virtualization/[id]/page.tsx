@@ -58,17 +58,38 @@ export default async function VirtualMachineDetail({ params }: PageProps) {
   // console.log(currentUser.data?.id);
 
   /* 获取权限数据 */
-  const check_permissions = VIRTUAL_MACHINE_PERMISSIONS.map((permission: string) => ({
-    user: `user:${currentUser.data?.id}`,
-    relation: permission,
-    object: `virtual_machine:${id}`,
-  }));
-  const { result } = await fgaClient.batchCheck({ checks: check_permissions });
-  // 解析权限结果为字典
-  // 优化：使用 Object.fromEntries 使代码更简洁高效
-  const userAllowed = Object.fromEntries(
-    result.map(item => [item.request.relation, item.allowed])
-  );
+  // 只在运行时且环境变量配置完整时检查权限
+  let userAllowed: Record<string, boolean> = {};
+  
+  if (
+    process.env.FGA_API_URL &&
+    currentUser.data?.id
+  ) {
+    try {
+      const check_permissions = VIRTUAL_MACHINE_PERMISSIONS.map((permission: string) => ({
+        user: `user:${currentUser.data?.id}`,
+        relation: permission,
+        object: `virtual_machine:${id}`,
+      }));
+      const { result } = await fgaClient.batchCheck({ checks: check_permissions });
+      // 解析权限结果为字典
+      // 优化：使用 Object.fromEntries 使代码更简洁高效
+      userAllowed = Object.fromEntries(
+        result.map(item => [item.request.relation, item.allowed])
+      );
+    } catch (error) {
+      // 如果 OpenFGA 不可用，默认拒绝所有权限
+      console.error("Failed to check permissions with OpenFGA:", error);
+      userAllowed = Object.fromEntries(
+        VIRTUAL_MACHINE_PERMISSIONS.map((permission: string) => [permission, false])
+      );
+    }
+  } else {
+    // 如果 OpenFGA 未配置，默认拒绝所有权限
+    userAllowed = Object.fromEntries(
+      VIRTUAL_MACHINE_PERMISSIONS.map((permission: string) => [permission, false])
+    );
+  }
   // console.log(userAllowed);
 
   const vm = data.data;
