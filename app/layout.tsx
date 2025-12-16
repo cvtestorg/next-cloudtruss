@@ -4,7 +4,6 @@ import { siteConfig } from "@/config/site";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { TweakcnThemeProvider } from "@/components/theme/tweakcn-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { ConditionalLayout } from "@/layout/root";
 import { SessionProvider } from "@/components/providers/session-provider";
 
 export const metadata: Metadata = {
@@ -49,7 +48,7 @@ export default function RootLayout({
         <SessionProvider>
           <ThemeProvider>
             <TweakcnThemeProvider>
-              <ConditionalLayout>{children}</ConditionalLayout>
+              {children}
               <Toaster />
             </TweakcnThemeProvider>
           </ThemeProvider>

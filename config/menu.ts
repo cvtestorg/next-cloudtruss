@@ -29,7 +29,7 @@ export const menuItems: MenuItem[] = [
   {
     title: "企业微信",
     icon: MessageCircleCode,
-    defaultOpen: false,
+    defaultOpen: true,
     subItems: [{ title: "1. 企微建群", href: "/wxwork/group" }],
   },
 ];

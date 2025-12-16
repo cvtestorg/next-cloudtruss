@@ -1,13 +1,30 @@
 "use client";
 
-import { ReactNode } from "react";
+import { SessionProvider as NextAuthSessionProvider, signOut, useSession } from "next-auth/react";
+import { useEffect, ReactNode } from "react";
 
-// Better Auth 不需要 SessionProvider，session 通过 API 获取
-// 这个组件保留是为了兼容性，但不再需要任何 provider
+function AuthErrorListener({ children }: { children: ReactNode }) {
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    // If we detect a RefreshTokenError, it means the refresh token is invalid/expired
+    // and we must force a sign out to clear the bad session and redirect to login.
+    if (session?.error === "RefreshTokenError") {
+      signOut();
+    }
+  }, [session]);
+
+  return <>{children}</>;
+}
+
 export function SessionProvider({
   children,
 }: {
   children: ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <NextAuthSessionProvider>
+      <AuthErrorListener>{children}</AuthErrorListener>
+    </NextAuthSessionProvider>
+  );
 }
