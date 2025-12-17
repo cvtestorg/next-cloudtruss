@@ -13,6 +13,8 @@ import { AppSidebarProvider } from "@/components/sidebar/app-sidebar-provider";
 import { AppSidebarNav } from "@/components/sidebar/app-sidebar-nav";
 import { AppSidebarFooter } from "@/components/sidebar/app-sidebar-footer";
 import { AppHeader } from "@/components/sidebar/app-header";
+import { redirect } from "next/navigation";
+import { AuthLoginRoute } from "@/config/routes";
 
 export async function AppSidebarLayout({
     children,
@@ -21,6 +23,13 @@ export async function AppSidebarLayout({
 }) {
     // 获取用户信息
     const user = await getServerUser();
+    
+    // 如果用户未登录，重定向到登录页
+    // 注意：这里不检查是否已经在登录页，避免循环重定向
+    if (!user) {
+        redirect(AuthLoginRoute);
+    }
+    
     const userInfo = getUserInfo(user);
 
     return (

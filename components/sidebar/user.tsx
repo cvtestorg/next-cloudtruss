@@ -87,10 +87,11 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push("/profile")}>
+              {/* Profile 页面暂时移除 */}
+              {/* <DropdownMenuItem onClick={() => router.push("/profile")}>
                 <UserIcon className="mr-2 size-4" />
                 <span>个人资料</span>
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <DropdownMenuItem onClick={() => router.push("/settings")}>
                 <Settings className="mr-2 size-4" />
                 <span>设置</span>

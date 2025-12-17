@@ -45,27 +45,32 @@ function getFgaClient(): OpenFgaClient {
  * 
  * 使用 Proxy 实现延迟初始化，避免在构建时因缺少环境变量而失败
  * 只有在实际调用方法时才会创建客户端实例
+ * 
+ * 注意：在构建时，如果环境变量未设置，会返回一个 stub 对象
+ * 这允许 Next.js 进行静态分析而不会失败
  */
 export const fgaClient = new Proxy({} as OpenFgaClient, {
   get(_target, prop) {
-    // 在构建时，如果环境变量未设置，返回一个安全的默认值
-    // 这允许 Next.js 进行静态分析而不会失败
-    if (typeof window !== "undefined" || !process.env.FGA_API_URL) {
-      // 客户端环境或构建时环境变量未设置
-      // 返回一个 stub 对象，避免构建错误
+    // 检查是否在构建时（通过检查环境变量是否可用）
+    // 在构建时，process.env 可能不包含运行时环境变量
+    const isBuildTime = !process.env.FGA_API_URL || process.env.NODE_ENV === undefined;
+    
+    if (isBuildTime) {
+      // 构建时：返回 stub，避免初始化错误
       if (prop === "batchCheck") {
+        // 返回一个异步函数，在实际调用时会抛出有意义的错误
         return async () => {
           throw new Error(
-            "OpenFGA client is not available. " +
-            "Please ensure FGA_API_URL and other required environment variables are set."
+            "OpenFGA client is not available during build time. " +
+            "Please ensure FGA_API_URL and other required environment variables are set at runtime."
           );
         };
       }
-      // 对于其他属性，返回 undefined
+      // 对于其他属性，返回一个安全的默认值
       return undefined;
     }
 
-    // 服务器端运行时，正常创建和使用客户端
+    // 运行时：正常创建和使用客户端
     try {
       const client = getFgaClient();
       const value = (client as any)[prop];

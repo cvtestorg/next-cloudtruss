@@ -1,61 +1,37 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { AuthLoginRoute, DEFAULT_LOGIN_REDIRECT } from "@/config/routes";
 import { auth } from "@/lib/auth";
-import {
-  AuthLoginRoute,
-  DEFAULT_LOGIN_REDIRECT,
-} from "@/config/routes";
 
-export default auth((req) => {
-  const { nextUrl } = req;
-  const isLoggedIn = !!req.auth;
-  
-  const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
-  const isAuthRoute = [AuthLoginRoute, "/auth/register"].includes(nextUrl.pathname);
-  const isPublicRoute = ["/", "/public"].includes(nextUrl.pathname); // Adjust based on your public routes
+export default async function proxy(request: NextRequest) {
+  try {
+    const session = await auth();
+    const { pathname } = new URL(request.url);
 
-  // 1. Always allow API auth routes
-  if (isApiAuthRoute) {
-    return;
-  }
-
-  // 2. Handle Auth Routes (Login/Register)
-  if (isAuthRoute) {
-    if (isLoggedIn) {
-      return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
-    }
-    return;
-  }
-
-  // 3. Protect private routes
-  if (!isLoggedIn && !isPublicRoute) {
-    let callbackUrl = nextUrl.pathname;
-    if (nextUrl.search) {
-      callbackUrl += nextUrl.search;
+    // 如果已经登录且在登录页，重定向到 dashboard
+    if (session && pathname === AuthLoginRoute) {
+      return NextResponse.redirect(
+        new URL(DEFAULT_LOGIN_REDIRECT, request.url)
+      );
     }
 
-    const encodedCallbackUrl = encodeURIComponent(callbackUrl);
+    // 如果未登录且不在登录页，重定向到登录页
+    if (!session && pathname !== AuthLoginRoute) {
+      return NextResponse.redirect(new URL(AuthLoginRoute, request.url));
+    }
 
-    return Response.redirect(
-      new URL(`${AuthLoginRoute}?callbackUrl=${encodedCallbackUrl}`, nextUrl)
-    );
+    // 其他情况允许继续访问
+    return NextResponse.next();
+  } catch (error) {
+    // 如果认证系统出错（比如 JWT 解密失败），清除可能损坏的 session 并重定向到登录页
+    console.error("Proxy auth error:", error);
+    const { pathname } = new URL(request.url);
+    if (pathname !== AuthLoginRoute) {
+      return NextResponse.redirect(new URL(AuthLoginRoute, request.url));
+    }
+    return NextResponse.next();
   }
-
-  // 4. Handle token rotation error (force logout)
-  // @ts-ignore
-  if (req.auth?.error === "RefreshTokenError") {
-      let callbackUrl = nextUrl.pathname;
-      if (nextUrl.search) {
-        callbackUrl += nextUrl.search;
-      }
-      const encodedCallbackUrl = encodeURIComponent(callbackUrl);
-      
-      // Redirect to login to re-authenticate
-      const url = new URL(AuthLoginRoute, nextUrl);
-      url.searchParams.set("callbackUrl", encodedCallbackUrl);
-      return Response.redirect(url);
-  }
-
-  return;
-});
+}
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],

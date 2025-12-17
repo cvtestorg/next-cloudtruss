@@ -6,6 +6,12 @@ declare module "next-auth" {
   interface Session {
     error?: "RefreshTokenError";
     accessToken?: string;
+    user: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+    };
   }
 }
 
@@ -13,7 +19,8 @@ declare module "next-auth/jwt" {
   interface JWT {
     accessToken?: string;
     refreshToken?: string;
-    expiresAt?: number;
+    expiresAt?: number; // 秒级时间戳，与官方文档保持一致
     error?: "RefreshTokenError";
+    sub?: string;
   }
 }

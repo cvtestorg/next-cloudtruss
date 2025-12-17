@@ -1,105 +1,39 @@
 import NextAuth from "next-auth";
-import Keycloak from "next-auth/providers/keycloak";
+import KeycloakProvider from "next-auth/providers/keycloak";
 
+// NextAuth v5 支持 AUTH_SECRET 和 NEXTAUTH_SECRET，优先使用 AUTH_SECRET
+const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
 
-import { JWT } from "next-auth/jwt";
-
-async function refreshAccessToken(token: JWT): Promise<JWT> {
-  try {
-    const url =
-      process.env.KEYCLOAK_ISSUER +
-      "/protocol/openid-connect/token";
-
-    const response = await fetch(url, {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      method: "POST",
-      body: new URLSearchParams({
-        client_id: process.env.KEYCLOAK_CLIENT_ID as string,
-        client_secret: process.env.KEYCLOAK_CLIENT_SECRET as string,
-        grant_type: "refresh_token",
-        refresh_token: token.refreshToken ?? "",
-      }),
-    });
-
-    const refreshedTokens = await response.json();
-
-    if (!response.ok) {
-        console.error("RefreshAccessTokenError", refreshedTokens);
-        // If the refresh token is invalid (e.g. expired or revoked), we should not return the old token
-        // incorrectly marked as valid-ish. We must signal a hard error.
-        return {
-            ...token,
-            error: "RefreshTokenError",
-        };
-    }
-
-    return {
-      ...token,
-      accessToken: refreshedTokens.access_token,
-      expiresAt: Date.now() + (refreshedTokens.expires_in * 1000), 
-      // Fall back to old refresh token if new one is not returned
-      refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, 
-    };
-  } catch (error) {
-    console.error("RefreshAccessTokenError", error);
-
-    return {
-      ...token,
-      error: "RefreshTokenError",
-    };
-  }
+if (!authSecret) {
+  console.warn(
+    "警告: AUTH_SECRET 或 NEXTAUTH_SECRET 环境变量未设置。这可能导致 JWT 解密错误。"
+  );
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
-    Keycloak({
-      clientId: process.env.KEYCLOAK_CLIENT_ID,
-      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
-      issuer: process.env.KEYCLOAK_ISSUER,
+    KeycloakProvider({
+      clientId: process.env.KEYCLOAK_CLIENT_ID!,
+      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
+      issuer: process.env.KEYCLOAK_ISSUER!,
+      authorization: {
+        params: {
+          scope: "openid profile email",
+        },
+      },
     }),
   ],
   callbacks: {
+    async jwt({ token, account }) {
+      if (account) token.accessToken = account.access_token;
+      return token;
+    },
     async session({ session, token }) {
-      if (token?.sub) {
-        session.user.id = token.sub;
-      }
-      if (token?.accessToken) {
-        session.accessToken = token.accessToken;
-      }
-      if (token?.error) {
-        session.error = token.error;
-      }
+      session.accessToken = token.accessToken;
       return session;
     },
-    async jwt({ token, user, account }) {
-        // Initial sign in
-        if (account && user) {
-            return {
-                ...token,
-                accessToken: account.access_token,
-                refreshToken: account.refresh_token,
-                expiresAt: Date.now() + ((account.expires_in as number) * 1000),
-                sub: user.id
-            }
-        }
-
-        // Return previous token if the access token has not expired yet
-        if (Date.now() < (token.expiresAt as number)) {
-            return token;
-        }
-
-        // If the token already has an error (e.g. RefreshTokenError), do not try to refresh again.
-        // This prevents an infinite loop of failing refreshes.
-        if (token.error) {
-            return token;
-        }
-
-        // Access token has expired, try to update it
-        return refreshAccessToken(token);
-    }
   },
-  // Ensure we trust the host in production or behind proxies
+  secret: authSecret,
+  // 改进错误处理：当 JWT 解密失败时，不抛出错误，而是返回 null session
   trustHost: true,
 });

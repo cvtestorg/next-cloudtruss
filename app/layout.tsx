@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/theme/theme-provider";
 import { TweakcnThemeProvider } from "@/components/theme/tweakcn-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { auth } from "@/lib/auth";
+
 
 export const metadata: Metadata = {
   title: {
@@ -37,15 +39,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // 在 Server Component 中获取 session
+  const session = await auth();
+
   return (
     <html lang={siteConfig.locale} suppressHydrationWarning>
       <body className="antialiased">
-        <SessionProvider>
+        <SessionProvider session={session}>
           <ThemeProvider>
             <TweakcnThemeProvider>
               {children}
