@@ -15,17 +15,17 @@ export async function signOutAction() {
  * Server Action 中可以安全地修改 cookies
  */
 export async function clearSessionAction(callbackUrl?: string): Promise<never> {
-  const cookieStore = cookies();
-  
+  const cookieStore = await cookies();
+
   // 删除 NextAuth session cookies
   cookieStore.delete("authjs.session-token");
   cookieStore.delete("authjs.csrf-token");
   cookieStore.delete("authjs.callback-url");
-  
+
   // 重定向到登录页
   const loginUrl = callbackUrl
     ? `${AuthLoginRoute}?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : AuthLoginRoute;
-  
+
   redirect(loginUrl);
 }
