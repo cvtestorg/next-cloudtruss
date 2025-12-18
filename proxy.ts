@@ -24,7 +24,10 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next();
   } catch (error) {
     // 如果认证系统出错（比如 JWT 解密失败），清除可能损坏的 session 并重定向到登录页
-    console.error("Proxy auth error:", error);
+    console.error("[Proxy] Auth error:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     const { pathname } = new URL(request.url);
     if (pathname !== AuthLoginRoute) {
       return NextResponse.redirect(new URL(AuthLoginRoute, request.url));

@@ -7,7 +7,7 @@ export async function getServerUser() {
   } catch (error) {
     // 如果认证系统出错（比如缺少 AUTH_SECRET），返回 null
     // 这样页面可以正常重定向到登录页，而不是崩溃
-    console.error("Failed to get server user:", error);
+    console.error("[Auth Server] Failed to get server user:", error);
     return null;
   }
 }
@@ -18,7 +18,7 @@ export async function getServerAccessToken(): Promise<string | null> {
     return (session?.accessToken as string) || null;
   } catch (error) {
     // 如果认证系统出错，返回 null
-    console.error("Failed to get server access token:", error);
+    console.error("[Auth Server] Failed to get server access token:", error);
     return null;
   }
 }
