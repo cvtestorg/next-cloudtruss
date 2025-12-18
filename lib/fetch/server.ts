@@ -25,7 +25,7 @@ async function handleUnauthorized(): Promise<never> {
   // 调用 Server Action 清除 session 并重定向
   // Server Action 内部会删除 cookies 并执行 redirect
   await clearSessionAction(pathname);
-  
+
   // 这行代码不会执行，因为 clearSessionAction 会抛出 redirect 错误
   // 但 TypeScript 需要这个返回值
   throw new Error("Should have redirected");
@@ -47,6 +47,7 @@ const serverApi = {
     };
 
     const token = await getToken();
+    // console.log("token", token);
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }

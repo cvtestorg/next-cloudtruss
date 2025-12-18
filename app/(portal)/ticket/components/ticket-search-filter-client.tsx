@@ -58,16 +58,12 @@ export function TicketSearchFilterClient() {
     updateFilters({ status: value });
   };
 
-  const handleTypeChange = (value: string) => {
-    updateFilters({ typeId: value });
-  };
-
   const handleReset = () => {
     router.push("/ticket");
   };
 
   const hasActiveFilters =
-    filters.search || filters.status !== "all" || filters.typeId !== "all";
+    filters.search || filters.status !== "all";
 
   return (
     <div className="space-y-4">
@@ -93,16 +89,6 @@ export function TicketSearchFilterClient() {
             <SelectItem value="approved">已通过</SelectItem>
             <SelectItem value="rejected">已拒绝</SelectItem>
             <SelectItem value="cancelled">已取消</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.typeId} onValueChange={handleTypeChange}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="类型" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部类型</SelectItem>
-            <SelectItem value="virtualization">虚拟机</SelectItem>
           </SelectContent>
         </Select>
 

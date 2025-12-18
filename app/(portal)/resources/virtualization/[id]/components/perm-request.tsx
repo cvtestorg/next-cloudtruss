@@ -15,10 +15,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { VIRTUAL_MACHINE_PERMISSIONS } from "@/config/permissions";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, CheckCircle2, XCircle } from "lucide-react";
+import { toast } from "sonner";
+import { createTicketAction } from "@/actions/ticket";
+import { TICKET_TYPE_PERMISSION } from "@/types/ticket";
+import type { VirtualMachineItem } from "@/types/vm";
 
 interface PermRequestProps {
   vmId: string;
+  vm: VirtualMachineItem;
   userAllowed: Record<string, boolean>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -78,6 +83,7 @@ const PERMISSION_DESCRIPTIONS: Record<string, string> = {
 
 export function PermRequest({
   vmId,
+  vm,
   userAllowed,
   open,
   onOpenChange,
@@ -135,23 +141,95 @@ export function PermRequest({
     setIsSubmitting(true);
 
     try {
-      // TODO: 调用 Server Action 批量提交权限申请
-      console.log("提交权限申请:", {
+      // 构建完整的表单数据
+      const formData = {
         vmId,
+        // 原始权限状态
+        originalPermissions: userAllowed,
+        // 待提交的变更
+        pendingChanges: Object.fromEntries(
+          Object.entries(pendingChanges).filter(([, value]) => value !== null)
+        ),
+        // 变更后的完整权限状态
+        finalPermissions: VIRTUAL_MACHINE_PERMISSIONS.reduce(
+          (acc, permission) => {
+            acc[permission] = getCurrentPermissionValue(permission);
+            return acc;
+          },
+          {} as Record<string, boolean>
+        ),
+        // 变更列表（用于提交）
         changes,
+      };
+
+      // 打印完整的表单数据
+      console.log("=== 权限申请表单数据 ===");
+      console.log(JSON.stringify(formData, null, 2));
+      console.log("========================");
+
+      // 构建工单标题
+      const permissionLabels = changes
+        .map((change) => PERMISSION_LABELS[change.permission] || change.permission)
+        .join("、");
+      const title = `申请虚拟机权限 - ${vm.name || vmId} (${permissionLabels})`;
+
+      // 调用 Server Action 创建工单
+      const ticketResponse = await createTicketAction({
+        type_id: TICKET_TYPE_PERMISSION,
+        title,
+        data: {
+          vmId,
+          vmName: vm.name,
+          vmHostname: vm.hostname,
+          vmAddress: vm.address,
+          // 原始权限状态
+          originalPermissions: userAllowed,
+          // 待提交的变更
+          pendingChanges: Object.fromEntries(
+            Object.entries(pendingChanges).filter(([, value]) => value !== null)
+          ),
+          // 变更后的完整权限状态
+          finalPermissions: VIRTUAL_MACHINE_PERMISSIONS.reduce(
+            (acc, permission) => {
+              acc[permission] = getCurrentPermissionValue(permission);
+              return acc;
+            },
+            {} as Record<string, boolean>
+          ),
+          // 变更列表（用于提交）
+          changes,
+        },
       });
 
-      // 模拟 API 调用
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // 调试：打印响应结构
+      console.log("=== 创建工单响应 ===");
+      console.log(JSON.stringify(ticketResponse, null, 2));
+      console.log("====================");
+
+      // 处理响应：API 可能返回不同的格式
+      // 如果响应有 data 字段（类似 TicketDetailResponse），则从 data 中获取 id
+      // 否则直接使用响应中的 id
+      const ticketId = 
+        (ticketResponse as { data?: { id?: string }; id?: string })?.data?.id || 
+        (ticketResponse as { id?: string })?.id || 
+        ticketResponse.id;
 
       // 成功后清空变更记录并关闭 Sheet
       setPendingChanges({});
       onOpenChange(false);
 
-      // 成功后可以刷新页面或更新状态
-      // router.refresh();
+      toast.success("权限申请提交成功", {
+        description: ticketId 
+          ? `工单已创建：${title} (ID: ${ticketId})`
+          : `工单已创建：${title}`,
+        icon: <CheckCircle2 className="h-4 w-4" />,
+      });
     } catch (error) {
       console.error("权限申请失败:", error);
+      toast.error("权限申请提交失败", {
+        description: error instanceof Error ? error.message : "未知错误",
+        icon: <XCircle className="h-4 w-4" />,
+      });
     } finally {
       setIsSubmitting(false);
     }

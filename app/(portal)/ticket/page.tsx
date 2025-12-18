@@ -2,7 +2,10 @@ import { Suspense } from "react";
 import { getTicketsAction } from "@/actions/ticket";
 import { TicketPageClient } from "./components/ticket-page-client";
 import { Loading } from "@/components/loading";
-import { TICKET_TYPE } from "@/types/ticket";
+import {
+  TICKET_TYPE_VIRTUALIZATION,
+  TICKET_TYPE_PERMISSION,
+} from "@/types/ticket";
 
 interface PageProps {
   searchParams: Promise<{
@@ -19,6 +22,15 @@ async function TicketListData({ searchParams }: { searchParams: PageProps["searc
   const page = parseInt(params.page || "1", 10);
   const pageSize = 20;
 
+  // 将 typeId 字符串转换为对应的 UUID
+  const getTypeId = (typeId: string): string => {
+    const typeIdMap: Record<string, string> = {
+      virtualization: TICKET_TYPE_VIRTUALIZATION,
+      permission: TICKET_TYPE_PERMISSION,
+    };
+    return typeIdMap[typeId] || typeId;
+  };
+
   const queryParams = {
     page,
     size: pageSize,
@@ -26,7 +38,7 @@ async function TicketListData({ searchParams }: { searchParams: PageProps["searc
     ...(params.status && params.status !== "all" && { status: params.status }),
     ...(params.typeId &&
       params.typeId !== "all" && {
-      type_id: params.typeId === "virtualization" ? TICKET_TYPE : params.typeId,
+      type_id: getTypeId(params.typeId),
     }),
   };
 

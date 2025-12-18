@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Eye, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -46,7 +46,7 @@ export function VmCreateForm({
   });
 
   const isSubmitting = form.formState.isSubmitting;
-  const formData = form.watch();
+  const formData = useWatch({ control: form.control });
 
   const onSubmit = async (data: VmCreateFormData) => {
     if (isSubmitting) return;
@@ -90,7 +90,7 @@ export function VmCreateForm({
         toast.success("提交申请成功", {
           icon: <CheckCircle2 className="h-4 w-4" />,
         });
-        router.push("/approval/list");
+        router.push("/ticket");
       }
     } catch (error) {
       console.error(ticketId ? "更新失败:" : "提交失败:", error);

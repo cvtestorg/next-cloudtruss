@@ -73,6 +73,7 @@ export function VmDetailActions({ vm, userAllowed }: VmDetailActionsProps) {
       </div>
       <PermRequest
         vmId={vm.id}
+        vm={vm}
         userAllowed={userAllowed}
         open={isPermRequestOpen}
         onOpenChange={setIsPermRequestOpen}

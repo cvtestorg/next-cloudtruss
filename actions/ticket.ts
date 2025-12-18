@@ -9,7 +9,7 @@ import type {
   TicketDetailResponse,
   TicketListResponse,
 } from "@/types/ticket";
-import { TICKET_TYPE } from "@/types/ticket";
+import { TICKET_TYPE_VIRTUALIZATION } from "@/types/ticket";
 
 const API_BASE_URL = "https://mini-approval.gz.cvte.cn";
 
@@ -33,7 +33,7 @@ export async function createTicketAction(
 ): Promise<CreateTicketResponse> {
   return serverApi.post<CreateTicketResponse>(`${API_BASE_URL}/tickets`, {
     ...data,
-    type_id: data.type_id ?? TICKET_TYPE,
+    type_id: data.type_id ?? TICKET_TYPE_VIRTUALIZATION,
   });
 }
 

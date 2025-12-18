@@ -1,4 +1,6 @@
-export const TICKET_TYPE = "d35c0d72-4277-437e-8371-0fc6f1ef91bb";
+export const TICKET_TYPE_VIRTUALIZATION =
+  "d35c0d72-4277-437e-8371-0fc6f1ef91bb";
+export const TICKET_TYPE_PERMISSION = "92b2997c-1161-4529-bc5e-dd0bfd9dadb8";
 
 /**
  * 创建工单请求参数类型

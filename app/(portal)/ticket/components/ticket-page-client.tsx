@@ -4,14 +4,27 @@ import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CheckCircle2, XCircle } from "lucide-react";
-import { deleteTicketAction, getApprovalAction } from "@/actions/ticket";
-import type { TicketListResponse, ApprovalResponse } from "@/types/ticket";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  deleteTicketAction,
+  getApprovalAction,
+  getTicketDetailAction,
+  updateTicketAction,
+} from "@/actions/ticket";
+import type {
+  TicketListResponse,
+  ApprovalResponse,
+  TicketDetailResponse,
+} from "@/types/ticket";
+import {
+  TICKET_TYPE_VIRTUALIZATION,
+  TICKET_TYPE_PERMISSION,
+} from "@/types/ticket";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +39,11 @@ import { TicketSearchFilterClient } from "./ticket-search-filter-client";
 import { TicketTable } from "./ticket-table";
 import { TicketPaginationClient } from "./ticket-pagination-client";
 import { ApprovalTimeline } from "./approval-timeline";
+import { TicketTypeTabs } from "./ticket-type-tabs";
+import { VirtualizationTicketData } from "./virtualization-ticket-data";
+import { PermissionTicketData } from "./permission-ticket-data";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 
 interface TicketPageClientProps {
   data: TicketListResponse;
@@ -46,17 +64,29 @@ export function TicketPageClient({
   const [approvalData, setApprovalData] = useState<ApprovalResponse | null>(
     null
   );
+  const [ticketDetail, setTicketDetail] = useState<TicketDetailResponse | null>(
+    null
+  );
   const [isLoadingApproval, setIsLoadingApproval] = useState(false);
   const [approvalError, setApprovalError] = useState<Error | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
-  // 获取审批详情
-  const fetchApproval = async (approvalId: string) => {
+  // 获取审批详情和工单详情
+  const fetchDetailData = async (ticketId: string) => {
     setIsLoadingApproval(true);
     setApprovalError(null);
     try {
-      const result = await getApprovalAction(approvalId);
-      setApprovalData(result);
+      // 并行获取审批详情和工单详情
+      const [approvalResult, ticketResult] = await Promise.all([
+        getApprovalAction(ticketId),
+        getTicketDetailAction(ticketId),
+      ]);
+      setApprovalData(approvalResult);
+      setTicketDetail(ticketResult);
     } catch (err) {
       setApprovalError(err instanceof Error ? err : new Error("未知错误"));
     } finally {
@@ -67,7 +97,7 @@ export function TicketPageClient({
   const handleDetailClick = (ticketId: string) => {
     setSelectedApprovalId(ticketId);
     setIsDetailOpen(true);
-    fetchApproval(ticketId);
+    fetchDetailData(ticketId);
   };
 
   const handleDeleteClick = (ticketId: string) => {
@@ -98,11 +128,64 @@ export function TicketPageClient({
     }
   };
 
+  const handleApproveConfirm = async () => {
+    if (!ticketDetail?.data?.id || isApproving) return;
+
+    setIsApproving(true);
+    try {
+      await updateTicketAction(ticketDetail.data.id, {
+        data: ticketDetail.data.data,
+        status: "approved",
+      });
+      toast.success("审批通过", {
+        icon: <CheckCircle2 className="h-4 w-4" />,
+      });
+      setApproveDialogOpen(false);
+      setIsDetailOpen(false);
+      router.refresh();
+    } catch (err) {
+      console.error("审批失败:", err);
+      toast.error("审批失败", {
+        description: err instanceof Error ? err.message : "未知错误",
+        icon: <XCircle className="h-4 w-4" />,
+      });
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!ticketDetail?.data?.id || isRejecting) return;
+
+    setIsRejecting(true);
+    try {
+      await updateTicketAction(ticketDetail.data.id, {
+        data: ticketDetail.data.data,
+        status: "rejected",
+      });
+      toast.success("已驳回", {
+        icon: <XCircle className="h-4 w-4" />,
+      });
+      setRejectDialogOpen(false);
+      setIsDetailOpen(false);
+      router.refresh();
+    } catch (err) {
+      console.error("驳回失败:", err);
+      toast.error("驳回失败", {
+        description: err instanceof Error ? err.message : "未知错误",
+        icon: <XCircle className="h-4 w-4" />,
+      });
+    } finally {
+      setIsRejecting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Suspense fallback={<div className="h-10 bg-muted rounded-md animate-pulse" />}>
         <TicketSearchFilterClient />
       </Suspense>
+      <TicketTypeTabs />
 
       <div className="rounded-lg border relative">
         <TicketTable
@@ -122,35 +205,100 @@ export function TicketPageClient({
         </Suspense>
       )}
 
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="overflow-auto">
-          <DialogHeader>
-            <DialogTitle>审批详情</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {isLoadingApproval ? (
-              <div className="text-center py-8 text-muted-foreground">
+      <Sheet
+        open={isDetailOpen}
+        onOpenChange={(open) => {
+          setIsDetailOpen(open);
+          if (!open) {
+            // 关闭时清理状态
+            setApprovalData(null);
+            setTicketDetail(null);
+            setSelectedApprovalId(null);
+            setApprovalError(null);
+          }
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-xl lg:max-w-2xl overflow-y-auto p-6"
+          showCloseButton={false}
+        >
+          {isLoadingApproval ? (
+            <>
+              <SheetHeader className="p-0">
+                <SheetTitle>审批详情</SheetTitle>
+              </SheetHeader>
+              <div className="mt-6 text-center py-8 text-muted-foreground">
                 加载中...
               </div>
-            ) : approvalError ? (
-              <div className="text-center py-8 text-destructive">
+            </>
+          ) : approvalError ? (
+            <>
+              <SheetHeader className="p-0">
+                <SheetTitle>审批详情</SheetTitle>
+              </SheetHeader>
+              <div className="mt-6 text-center py-8 text-destructive">
                 加载失败:{" "}
                 {approvalError instanceof Error
                   ? approvalError.message
                   : "未知错误"}
               </div>
-            ) : approvalData &&
-              approvalData.data &&
-              approvalData.data.length > 0 ? (
-              <div className="space-y-4">
+            </>
+          ) : approvalData &&
+            approvalData.data &&
+            approvalData.data.length > 0 &&
+            ticketDetail?.data ? (
+            <Tabs defaultValue="approval" className="w-full">
+              <div className="flex items-center justify-between gap-4">
+                <TabsList>
+                  <TabsTrigger value="approval">审批信息</TabsTrigger>
+                  <TabsTrigger value="data">审批数据</TabsTrigger>
+                </TabsList>
+                <div className="flex gap-2">
+                  <Button
+                    variant="default"
+                    onClick={() => setApproveDialogOpen(true)}
+                    disabled={isApproving || isRejecting}
+                  >
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    {isApproving ? "审批中..." : "审批"}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => setRejectDialogOpen(true)}
+                    disabled={isApproving || isRejecting}
+                  >
+                    <XCircle className="h-4 w-4 mr-2" />
+                    {isRejecting ? "驳回中..." : "驳回"}
+                  </Button>
+                </div>
+              </div>
+              <TabsContent value="approval" className="mt-4">
                 <ApprovalTimeline
                   tasks={approvalData.data[0].data.tasks}
                 />
-              </div>
-            ) : null}
-          </div>
-        </DialogContent>
-      </Dialog>
+              </TabsContent>
+              <TabsContent value="data" className="mt-4">
+                {ticketDetail.data.type_id === TICKET_TYPE_VIRTUALIZATION ? (
+                  <VirtualizationTicketData ticket={ticketDetail.data} />
+                ) : ticketDetail.data.type_id === TICKET_TYPE_PERMISSION ? (
+                  <PermissionTicketData ticket={ticketDetail.data} />
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className="text-sm">暂不支持此类型的审批数据展示</p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <>
+              <SheetHeader className="p-0">
+                <SheetTitle>审批详情</SheetTitle>
+              </SheetHeader>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
 
       <AlertDialog
         open={isDeleteDialogOpen}
@@ -171,6 +319,47 @@ export function TicketPageClient({
               disabled={isDeleting}
             >
               {isDeleting ? "删除中..." : "删除"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认审批</AlertDialogTitle>
+            <AlertDialogDescription>
+              确定要通过这个申请单吗?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleApproveConfirm}
+              disabled={isApproving}
+            >
+              {isApproving ? "审批中..." : "确认审批"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认驳回</AlertDialogTitle>
+            <AlertDialogDescription>
+              确定要驳回这个申请单吗? 此操作不可撤销.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRejectConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isRejecting}
+            >
+              {isRejecting ? "驳回中..." : "确认驳回"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
