@@ -1,12 +1,11 @@
-import { headers } from "next/headers";
 import { getServerAccessToken } from "@/lib/auth/server";
-import { clearSessionAction } from "@/actions/auth";
+import { UnauthorizedError } from "@/lib/errors";
 
 /**
  * 服务器端 API 调用函数
  * 用于 Server Components、Server Actions 和 Route Handlers
  * 自动从 Better Auth session 中获取 access_token 并添加到请求头
- * 当遇到 401 错误时，先清空 session，然后重定向到登录页
+ * 当遇到 401 错误时，抛出 UnauthorizedError，由调用方处理
  */
 
 async function getToken(): Promise<string | null> {
@@ -14,21 +13,12 @@ async function getToken(): Promise<string | null> {
 }
 
 /**
- * 处理 401 未授权错误，使用 Server Action 清除 session cookies
- * Server Action 中可以安全地修改 cookies，比 Route Handler 更简洁
+ * 处理 401 未授权错误
+ * 抛出 UnauthorizedError，由调用方（Server Component 或 Server Action）捕获并处理
+ * 这样可以确保在正确的上下文中调用 Server Action 来清除 session
  */
-async function handleUnauthorized(): Promise<never> {
-  // 获取当前路径作为回调 URL
-  const headersList = await headers();
-  const pathname = headersList.get("x-pathname") || "/";
-
-  // 调用 Server Action 清除 session 并重定向
-  // Server Action 内部会删除 cookies 并执行 redirect
-  await clearSessionAction(pathname);
-
-  // 这行代码不会执行，因为 clearSessionAction 会抛出 redirect 错误
-  // 但 TypeScript 需要这个返回值
-  throw new Error("Should have redirected");
+function handleUnauthorized(): never {
+  throw new UnauthorizedError("Access token expired or invalid");
 }
 
 const serverApi = {

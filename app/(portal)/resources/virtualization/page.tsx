@@ -4,6 +4,9 @@ import { VmSearchFilterClient } from "./components/vm-search-filter-client";
 import { VmTable } from "./components/vm-table";
 import { VmPaginationClient } from "./components/vm-pagination-client";
 import { VmCreateButton } from "./components/vm-create-button";
+import { UnauthorizedError } from "@/lib/errors";
+import { handleUnauthorizedAction } from "@/actions/auth";
+import { headers } from "next/headers";
 
 interface PageProps {
   searchParams: Promise<{
@@ -21,14 +24,26 @@ export default async function VirtualizationPage({ searchParams }: PageProps) {
   const page = parseInt(params.page || "1", 10);
   const pageSize = 20;
 
-  const data = await getVirtualMachinesAction({
-    page,
-    size: pageSize,
-    search: params.search,
-    status: params.status,
-    powerStatus: params.powerStatus,
-    env: params.env,
-  });
+  let data;
+  try {
+    data = await getVirtualMachinesAction({
+      page,
+      size: pageSize,
+      search: params.search,
+      status: params.status,
+      powerStatus: params.powerStatus,
+      env: params.env,
+    });
+  } catch (error) {
+    // 如果遇到 401 错误（AccessToken 过期），清除 session 并重定向到登录页
+    if (error instanceof UnauthorizedError) {
+      const headersList = await headers();
+      const pathname = headersList.get("x-pathname") || headersList.get("referer") || "/";
+      await handleUnauthorizedAction(pathname);
+    }
+    // 其他错误重新抛出
+    throw error;
+  }
 
   return (
     <div className="space-y-6 w-full min-w-0">

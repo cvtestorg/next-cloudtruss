@@ -30,6 +30,9 @@ import Link from "next/link";
 import { fgaClient } from "@/lib/openfga";
 import { getCurrentUserAction } from "@/actions/user";
 import { VIRTUAL_MACHINE_PERMISSIONS } from "@/config/permissions";
+import { UnauthorizedError } from "@/lib/errors";
+import { handleUnauthorizedAction } from "@/actions/auth";
+import { headers } from "next/headers";
 
 interface PageProps {
   params: Promise<{
@@ -46,7 +49,19 @@ export default async function VirtualMachineDetail({ params }: PageProps) {
   }
 
   /* 获取虚拟机详情 */
-  const data = await getVirtualMachineDetailAction(id);
+  let data;
+  try {
+    data = await getVirtualMachineDetailAction(id);
+  } catch (error) {
+    // 如果遇到 401 错误（AccessToken 过期），清除 session 并重定向到登录页
+    if (error instanceof UnauthorizedError) {
+      const headersList = await headers();
+      const pathname = headersList.get("x-pathname") || headersList.get("referer") || "/";
+      await handleUnauthorizedAction(pathname);
+    }
+    // 其他错误重新抛出
+    throw error;
+  }
 
   /* 如果数据不存在，则返回 404 */
   if (!data?.data) {
@@ -54,7 +69,19 @@ export default async function VirtualMachineDetail({ params }: PageProps) {
   }
 
   /* 获取当前登录的用户信息 */
-  const currentUser = await getCurrentUserAction();
+  let currentUser;
+  try {
+    currentUser = await getCurrentUserAction();
+  } catch (error) {
+    // 如果遇到 401 错误（AccessToken 过期），清除 session 并重定向到登录页
+    if (error instanceof UnauthorizedError) {
+      const headersList = await headers();
+      const pathname = headersList.get("x-pathname") || headersList.get("referer") || "/";
+      await handleUnauthorizedAction(pathname);
+    }
+    // 其他错误重新抛出
+    throw error;
+  }
   // console.log(currentUser.data?.id);
 
   /* 获取权限数据 */
