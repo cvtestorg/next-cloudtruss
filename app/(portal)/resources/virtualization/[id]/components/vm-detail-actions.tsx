@@ -1,11 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { RotateCw, PowerCircle, Power, Shield } from "lucide-react";
 import { VmActionsMenu } from "./vm-actions-menu";
 import { PermRequest } from "./perm-request";
 import type { VirtualMachineItem } from "@/types/vm";
+import { createActionLogAction } from "@/actions/action";
+import { createTicketAction } from "@/actions/ticket";
+import { TICKET_TYPE_VIRTUALIZATION } from "@/types/ticket";
 
 interface VmDetailActionsProps {
   vm: VirtualMachineItem;
@@ -14,6 +18,7 @@ interface VmDetailActionsProps {
 
 export function VmDetailActions({ vm, userAllowed }: VmDetailActionsProps) {
   const [isPermRequestOpen, setIsPermRequestOpen] = useState(false);
+  const router = useRouter();
 
   // 判断电源状态
   const normalizedPowerStatus = vm.power_status?.toLowerCase() || "";
@@ -23,9 +28,79 @@ export function VmDetailActions({ vm, userAllowed }: VmDetailActionsProps) {
     normalizedPowerStatus === "off" ||
     normalizedPowerStatus === "poweredoff";
 
-  const handleVmAction = (action: string, vm: VirtualMachineItem) => {
+  const handleVmAction = async (action: string, vm: VirtualMachineItem) => {
     console.log(`执行操作: ${action}`, vm);
-    // TODO: 根据不同的 action 执行对应的操作
+    
+    // 对于"查看"操作，不需要创建操作日志
+    if (action === "view") {
+      return;
+    }
+
+    try {
+      // CPU/内存扩容需要创建审批单，而不是操作日志
+      if (action === "cpu-memory-expand") {
+        const title = `CPU/内存扩容 - ${vm.name}`;
+        await createTicketAction({
+          type_id: TICKET_TYPE_VIRTUALIZATION,
+          title,
+          data: {
+            vmId: vm.id,
+            vmName: vm.name,
+            vmHostname: vm.hostname,
+            vmAddress: vm.address,
+            action: "cpu-memory-expand",
+          },
+        });
+        // 创建成功后跳转到审批单列表
+        router.push("/ticket");
+        return;
+      }
+
+      // 其他操作创建操作日志
+      await createActionLogAction({
+        service: "virtualization",
+        action: action,
+        target: vm.name,
+        data: {},
+      });
+      // 创建成功后跳转到 action 列表
+      router.push("/actions");
+    } catch (error) {
+      console.error("创建操作日志/审批单失败:", error);
+      // 可以在这里添加错误提示
+    }
+  };
+
+  const handleRestart = async () => {
+    try {
+      await createActionLogAction({
+        service: "virtualization",
+        action: "restart",
+        target: vm.name,
+        data: {},
+      });
+      // 创建成功后跳转到 action 列表
+      router.push("/actions");
+    } catch (error) {
+      console.error("创建操作日志失败:", error);
+      // 可以在这里添加错误提示
+    }
+  };
+
+  const handleShutdown = async () => {
+    try {
+      await createActionLogAction({
+        service: "virtualization",
+        action: "shutdown",
+        target: vm.name,
+        data: {},
+      });
+      // 创建成功后跳转到 action 列表
+      router.push("/actions");
+    } catch (error) {
+      console.error("创建操作日志失败:", error);
+      // 可以在这里添加错误提示
+    }
   };
 
   return (
@@ -48,13 +123,13 @@ export function VmDetailActions({ vm, userAllowed }: VmDetailActionsProps) {
         {isPoweredOn && (
           <>
             {userAllowed["can_restart"] && (
-              <Button variant="destructive">
+              <Button variant="destructive" onClick={handleRestart}>
                 <RotateCw className="h-3 w-3" />
                 重启
               </Button>
             )}
             {userAllowed["can_shutdown"] && (
-              <Button variant="destructive">
+              <Button variant="destructive" onClick={handleShutdown}>
                 <PowerCircle className="h-3 w-3" />
                 关机
               </Button>
