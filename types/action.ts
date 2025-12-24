@@ -7,6 +7,7 @@ export interface ActionLog {
   service: string;
   action: string;
   target: string;
+  target_id: string;
   data: Record<string, unknown>;
   status: string;
 }

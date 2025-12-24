@@ -61,6 +61,7 @@ export function VmDetailActions({ vm, userAllowed }: VmDetailActionsProps) {
         service: "virtualization",
         action: action,
         target: vm.name,
+        target_id: vm.id,
         data: {},
       });
       // 创建成功后跳转到 action 列表
@@ -77,6 +78,7 @@ export function VmDetailActions({ vm, userAllowed }: VmDetailActionsProps) {
         service: "virtualization",
         action: "restart",
         target: vm.name,
+        target_id: vm.id,
         data: {},
       });
       // 创建成功后跳转到 action 列表
@@ -93,6 +95,7 @@ export function VmDetailActions({ vm, userAllowed }: VmDetailActionsProps) {
         service: "virtualization",
         action: "shutdown",
         target: vm.name,
+        target_id: vm.id,
         data: {},
       });
       // 创建成功后跳转到 action 列表

@@ -46,6 +46,7 @@ interface CreateActionLogRequest {
   service: string;
   action: string;
   target: string;
+  target_id: string;
   data: Record<string, unknown>;
 }
 
@@ -68,6 +69,7 @@ export async function getActionLogAction(
 
 interface UpdateActionLogRequest {
   status: string;
+  data: Record<string, unknown>;
 }
 
 export async function updateActionLogAction(
