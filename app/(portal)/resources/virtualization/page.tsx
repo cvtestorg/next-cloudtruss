@@ -11,10 +11,9 @@ import { headers } from "next/headers";
 interface PageProps {
   searchParams: Promise<{
     page?: string;
-    search?: string;
-    status?: string;
-    powerStatus?: string;
-    env?: string;
+    like_name?: string;
+    like_env?: string;
+    vcenter?: string;
   }>;
 }
 
@@ -29,10 +28,9 @@ export default async function VirtualizationPage({ searchParams }: PageProps) {
     data = await getVirtualMachinesAction({
       page,
       size: pageSize,
-      search: params.search,
-      status: params.status,
-      powerStatus: params.powerStatus,
-      env: params.env,
+      like_name: params.like_name,
+      like_env: params.like_env,
+      vcenter: params.vcenter,
     });
   } catch (error) {
     // 如果遇到 401 错误（AccessToken 过期），清除 session 并重定向到登录页

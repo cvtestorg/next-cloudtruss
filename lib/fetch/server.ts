@@ -32,17 +32,24 @@ const serverApi = {
       });
     }
 
+    const finalUrl = urlObj.toString();
+    console.log("[serverApi.get] Final Request:");
+    console.log("  URL:", finalUrl);
+    if (params) {
+      console.log("  Query Params:", JSON.stringify(params, null, 2));
+    }
+
     const headers: HeadersInit = {
       "Content-Type": "application/json",
     };
 
     const token = await getToken();
-    console.log("token", token);
+    // console.log("token", token);
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const response = await fetch(urlObj.toString(), {
+    const response = await fetch(finalUrl, {
       method: "GET",
       headers,
       cache: "no-store", // 服务器端请求通常不需要缓存
@@ -64,8 +71,16 @@ const serverApi = {
     };
 
     const token = await getToken();
+    console.log(
+      "[serverApi.post] Token:",
+      token ? "exists" : "null",
+      "URL:",
+      url
+    );
     if (token) {
       headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.warn("[serverApi.post] No access token available for URL:", url);
     }
 
     const response = await fetch(url, {
@@ -79,7 +94,26 @@ const serverApi = {
       if (response.status === 401) {
         await handleUnauthorized();
       }
-      throw new Error(`HTTP error! status: ${response.status}`);
+
+      // 尝试获取错误详情
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.message) {
+          errorMessage = `${errorMessage}: ${errorData.message}`;
+        } else if (errorData.error) {
+          errorMessage = `${errorMessage}: ${errorData.error}`;
+        } else if (typeof errorData === "string") {
+          errorMessage = `${errorMessage}: ${errorData}`;
+        }
+        console.error("[serverApi.post] Error response:", errorData);
+      } catch {
+        // 如果响应不是 JSON，使用默认错误消息
+        const text = await response.text();
+        console.error("[serverApi.post] Error response (text):", text);
+      }
+
+      throw new Error(errorMessage);
     }
 
     return response.json();

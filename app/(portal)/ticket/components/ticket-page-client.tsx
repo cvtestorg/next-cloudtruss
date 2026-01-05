@@ -8,7 +8,8 @@ import {
   deleteTicketAction,
   getApprovalAction,
   getTicketDetailAction,
-  updateTicketAction,
+  submitApprovalAction,
+  rollbackApprovalAction,
 } from "@/actions/ticket";
 import type {
   TicketListResponse,
@@ -44,6 +45,7 @@ import { VirtualizationTicketData } from "./virtualization-ticket-data";
 import { PermissionTicketData } from "./permission-ticket-data";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface TicketPageClientProps {
   data: TicketListResponse;
@@ -55,9 +57,6 @@ export function TicketPageClient({
   currentPage,
 }: TicketPageClientProps) {
   const router = useRouter();
-  const [selectedApprovalId, setSelectedApprovalId] = useState<string | null>(
-    null
-  );
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [deleteTicketId, setDeleteTicketId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -74,6 +73,9 @@ export function TicketPageClient({
   const [isRejecting, setIsRejecting] = useState(false);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [approvalComment, setApprovalComment] = useState("同意");
+  const [rejectComment, setRejectComment] = useState("不同意");
+  const [currentTicketId, setCurrentTicketId] = useState<string | null>(null);
 
   // 获取审批详情和工单详情
   const fetchDetailData = async (ticketId: string) => {
@@ -95,7 +97,8 @@ export function TicketPageClient({
   };
 
   const handleDetailClick = (ticketId: string) => {
-    setSelectedApprovalId(ticketId);
+    console.log("[handleDetailClick] ticketId:", ticketId);
+    setCurrentTicketId(ticketId);
     setIsDetailOpen(true);
     fetchDetailData(ticketId);
   };
@@ -129,14 +132,16 @@ export function TicketPageClient({
   };
 
   const handleApproveConfirm = async () => {
-    if (!ticketDetail?.data?.id || isApproving) return;
+    if (!currentTicketId || isApproving) return;
 
+    console.log("[handleApproveConfirm] currentTicketId:", currentTicketId);
+    console.log("[handleApproveConfirm] approvalComment:", approvalComment);
     setIsApproving(true);
     try {
-      await updateTicketAction(ticketDetail.data.id, {
-        data: ticketDetail.data.data,
-        status: "approved",
-      });
+      await submitApprovalAction(
+        currentTicketId,
+        approvalComment
+      );
       toast.success("审批通过", {
         icon: <CheckCircle2 className="h-4 w-4" />,
       });
@@ -155,14 +160,17 @@ export function TicketPageClient({
   };
 
   const handleRejectConfirm = async () => {
-    if (!ticketDetail?.data?.id || isRejecting) return;
+    if (!currentTicketId || isRejecting) return;
 
+    console.log("[handleRejectConfirm] currentTicketId:", currentTicketId);
+    console.log("[handleRejectConfirm] rejectComment:", rejectComment);
     setIsRejecting(true);
     try {
-      await updateTicketAction(ticketDetail.data.id, {
-        data: ticketDetail.data.data,
-        status: "rejected",
-      });
+      await rollbackApprovalAction(
+        currentTicketId,
+        0,
+        rejectComment
+      );
       toast.success("已驳回", {
         icon: <XCircle className="h-4 w-4" />,
       });
@@ -213,8 +221,8 @@ export function TicketPageClient({
             // 关闭时清理状态
             setApprovalData(null);
             setTicketDetail(null);
-            setSelectedApprovalId(null);
             setApprovalError(null);
+            setCurrentTicketId(null);
           }
         }}
       >
@@ -324,7 +332,15 @@ export function TicketPageClient({
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
+      <AlertDialog
+        open={approveDialogOpen}
+        onOpenChange={(open) => {
+          setApproveDialogOpen(open);
+          if (!open) {
+            setApprovalComment("同意");
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>确认审批</AlertDialogTitle>
@@ -332,6 +348,15 @@ export function TicketPageClient({
               确定要通过这个申请单吗?
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="space-y-2">
+            <Textarea
+              id="approval-comment"
+              value={approvalComment}
+              onChange={(e) => setApprovalComment(e.target.value)}
+              placeholder="请输入审批建议"
+              rows={3}
+            />
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction
@@ -344,7 +369,15 @@ export function TicketPageClient({
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+      <AlertDialog
+        open={rejectDialogOpen}
+        onOpenChange={(open) => {
+          setRejectDialogOpen(open);
+          if (!open) {
+            setRejectComment("不同意");
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>确认驳回</AlertDialogTitle>
@@ -352,6 +385,15 @@ export function TicketPageClient({
               确定要驳回这个申请单吗? 此操作不可撤销.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="space-y-2">
+            <Textarea
+              id="reject-comment"
+              value={rejectComment}
+              onChange={(e) => setRejectComment(e.target.value)}
+              placeholder="请输入驳回原因"
+              rows={3}
+            />
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction

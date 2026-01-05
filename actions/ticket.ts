@@ -62,3 +62,38 @@ export async function getApprovalAction(
     approval_id: approvalId,
   });
 }
+
+// 审批通过
+export async function submitApprovalAction(
+  approvalId: string,
+  comment: string = "同意"
+): Promise<ApprovalResponse> {
+  console.log("[submitApprovalAction] approvalId:", approvalId);
+  console.log("[submitApprovalAction] comment:", comment);
+  return serverApi.post<ApprovalResponse>(
+    `${API_BASE_URL}/jdy/approval/submit`,
+    {
+      approval_id: approvalId,
+      comment,
+    }
+  );
+}
+
+// 驳回
+export async function rollbackApprovalAction(
+  approvalId: string,
+  flowId: number = 0,
+  comment: string = "驳回"
+): Promise<ApprovalResponse> {
+  console.log("[rollbackApprovalAction] approvalId:", approvalId);
+  console.log("[rollbackApprovalAction] flowId:", flowId);
+  console.log("[rollbackApprovalAction] comment:", comment);
+  return serverApi.post<ApprovalResponse>(
+    `${API_BASE_URL}/jdy/approval/rollback`,
+    {
+      approval_id: approvalId,
+      flow_id: flowId,
+      comment,
+    }
+  );
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -14,10 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
 
 export interface FilterParams {
-  search: string;
-  status: string;
-  powerStatus: string;
-  env: string;
+  like_name: string;
+  like_env: string;
+  vcenter: string;
 }
 
 export function VmSearchFilterClient() {
@@ -26,13 +25,40 @@ export function VmSearchFilterClient() {
 
   const filters = useMemo<FilterParams>(
     () => ({
-      search: searchParams.get("search") || "",
-      status: searchParams.get("status") || "all",
-      powerStatus: searchParams.get("powerStatus") || "all",
-      env: searchParams.get("env") || "all",
+      like_name: searchParams.get("like_name") || "",
+      like_env: searchParams.get("like_env") || "all",
+      vcenter: searchParams.get("vcenter") || "all",
     }),
     [searchParams]
   );
+
+  // 本地搜索输入值，用于防抖
+  const [localSearchValue, setLocalSearchValue] = useState(filters.like_name);
+
+  // 当 URL 参数变化时，同步本地值（例如重置或外部更新）
+  useEffect(() => {
+    setLocalSearchValue(filters.like_name);
+  }, [filters.like_name]);
+
+  // 防抖处理：停止输入 500ms 后再更新 URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearchValue !== filters.like_name) {
+        const params = new URLSearchParams(searchParams.toString());
+        
+        if (localSearchValue && localSearchValue.trim()) {
+          params.set("like_name", localSearchValue);
+        } else {
+          params.delete("like_name");
+        }
+        
+        params.set("page", "1");
+        router.push(`?${params.toString()}`);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [localSearchValue, filters.like_name, router, searchParams]);
 
   const updateFilters = useCallback(
     (newFilters: Partial<FilterParams>) => {
@@ -56,19 +82,15 @@ export function VmSearchFilterClient() {
   );
 
   const handleSearchChange = (value: string) => {
-    updateFilters({ search: value });
-  };
-
-  const handleStatusChange = (value: string) => {
-    updateFilters({ status: value });
-  };
-
-  const handlePowerStatusChange = (value: string) => {
-    updateFilters({ powerStatus: value });
+    setLocalSearchValue(value);
   };
 
   const handleEnvChange = (value: string) => {
-    updateFilters({ env: value });
+    updateFilters({ like_env: value });
+  };
+
+  const handleVcenterChange = (value: string) => {
+    updateFilters({ vcenter: value });
   };
 
   const handleReset = () => {
@@ -76,10 +98,9 @@ export function VmSearchFilterClient() {
   };
 
   const hasActiveFilters =
-    filters.search ||
-    filters.status !== "all" ||
-    filters.powerStatus !== "all" ||
-    filters.env !== "all";
+    filters.like_name ||
+    filters.like_env !== "all" ||
+    filters.vcenter !== "all";
 
   return (
     <div className="space-y-4">
@@ -89,39 +110,13 @@ export function VmSearchFilterClient() {
           <Input
             type="text"
             placeholder="搜索名称、主机名或地址..."
-            value={filters.search}
+            value={localSearchValue}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-9"
           />
         </div>
 
-        <Select value={filters.status} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="状态" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部状态</SelectItem>
-            <SelectItem value="running">运行中</SelectItem>
-            <SelectItem value="stopped">已停止</SelectItem>
-            <SelectItem value="error">错误</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={filters.powerStatus}
-          onValueChange={handlePowerStatusChange}
-        >
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="电源状态" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部电源状态</SelectItem>
-            <SelectItem value="on">开启</SelectItem>
-            <SelectItem value="off">关闭</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.env} onValueChange={handleEnvChange}>
+        <Select value={filters.like_env} onValueChange={handleEnvChange}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="环境" />
           </SelectTrigger>
@@ -131,6 +126,16 @@ export function VmSearchFilterClient() {
             <SelectItem value="dev">开发</SelectItem>
             <SelectItem value="test">测试</SelectItem>
             <SelectItem value="staging">预发布</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={filters.vcenter} onValueChange={handleVcenterChange}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="vCenter" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部 vCenter</SelectItem>
+            <SelectItem value="VCSA-ZSC">VCSA-ZSC</SelectItem>
           </SelectContent>
         </Select>
 

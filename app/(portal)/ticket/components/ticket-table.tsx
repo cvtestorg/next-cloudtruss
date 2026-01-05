@@ -98,7 +98,12 @@ export function TicketTable({
               className="font-medium cursor-pointer hover:underline"
               onClick={() => onDetailClick(ticket.id)}
             >
-              {ticket.title}
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm font-mono">
+                  {ticket.id}
+                </span>
+                <span>{ticket.title}</span>
+              </div>
             </TableCell>
             <TableCell>{ticket.type_name}</TableCell>
             <TableCell>{ticket.status || "待审批"}</TableCell>

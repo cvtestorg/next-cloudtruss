@@ -8,17 +8,16 @@ const API_BASE_URL = "https://virtualization-api.gz.cvte.cn";
 export interface VirtualMachineFilters {
   page?: number;
   size?: number;
-  search?: string;
-  status?: string;
-  powerStatus?: string;
-  env?: string;
+  like_name?: string;
+  like_env?: string;
+  vcenter?: string;
 }
 
 /* 获取虚拟机列表 */
 export async function getVirtualMachinesAction(
   filters: VirtualMachineFilters = {}
 ): Promise<VirtualMachineList> {
-  const { page = 1, size = 20, search, status, powerStatus, env } = filters;
+  const { page = 1, size = 20, like_name, like_env, vcenter } = filters;
 
   const params: Record<string, unknown> = {
     page,
@@ -26,12 +25,16 @@ export async function getVirtualMachinesAction(
   };
 
   // 只在有值的时候添加过滤参数
-  if (search) params.search = search;
-  if (status && status !== "all") params.status = status;
-  if (powerStatus && powerStatus !== "all") params.power_status = powerStatus;
-  if (env && env !== "all") params.env = env;
+  if (like_name) params.like_name = like_name;
+  if (like_env && like_env !== "all") params.like_env = like_env;
+  if (vcenter && vcenter !== "all") params.vcenter = vcenter;
 
-  return serverApi.get<VirtualMachineList>(`${API_BASE_URL}/vm`, params);
+  const apiUrl = `${API_BASE_URL}/vm`;
+  // console.log("[getVirtualMachinesAction] API Request:");
+  // console.log("  URL:", apiUrl);
+  // console.log("  Params:", JSON.stringify(params, null, 2));
+
+  return serverApi.get<VirtualMachineList>(apiUrl, params);
 }
 
 /* 获取虚拟机详情 */
