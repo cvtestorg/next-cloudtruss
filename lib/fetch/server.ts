@@ -44,7 +44,7 @@ const serverApi = {
     };
 
     const token = await getToken();
-    // console.log("token", token);
+    console.log("token", token);
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }
@@ -98,19 +98,29 @@ const serverApi = {
       // 尝试获取错误详情
       let errorMessage = `HTTP error! status: ${response.status}`;
       try {
-        const errorData = await response.json();
-        if (errorData.message) {
-          errorMessage = `${errorMessage}: ${errorData.message}`;
-        } else if (errorData.error) {
-          errorMessage = `${errorMessage}: ${errorData.error}`;
-        } else if (typeof errorData === "string") {
-          errorMessage = `${errorMessage}: ${errorData}`;
-        }
-        console.error("[serverApi.post] Error response:", errorData);
-      } catch {
-        // 如果响应不是 JSON，使用默认错误消息
+        // 先读取为 text，避免 body 被重复读取
         const text = await response.text();
-        console.error("[serverApi.post] Error response (text):", text);
+        try {
+          // 尝试解析为 JSON
+          const errorData = JSON.parse(text);
+          if (errorData.message) {
+            errorMessage = `${errorMessage}: ${errorData.message}`;
+          } else if (errorData.error) {
+            errorMessage = `${errorMessage}: ${errorData.error}`;
+          } else if (typeof errorData === "string") {
+            errorMessage = `${errorMessage}: ${errorData}`;
+          }
+          console.error("[serverApi.post] Error response:", errorData);
+        } catch {
+          // 如果不是 JSON，直接使用 text
+          console.error("[serverApi.post] Error response (text):", text);
+          if (text) {
+            errorMessage = `${errorMessage}: ${text}`;
+          }
+        }
+      } catch {
+        // 如果读取 text 也失败，使用默认错误消息
+        console.error("[serverApi.post] Failed to read error response");
       }
 
       throw new Error(errorMessage);

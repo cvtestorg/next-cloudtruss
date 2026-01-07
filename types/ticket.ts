@@ -125,5 +125,5 @@ export interface ApprovalResponse {
   success: boolean;
   code: number;
   message: string;
-  data: { data: ApprovalData; instance_id: string; message: string | null }[];
+  data: ApprovalData[];
 }

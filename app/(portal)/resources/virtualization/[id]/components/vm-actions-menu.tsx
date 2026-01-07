@@ -29,9 +29,10 @@ interface VmActionsMenuProps {
   children: React.ReactNode;
   userAllowed: Record<string, boolean>;
   onAction?: (action: string, vm: VirtualMachineItem) => void;
+  disabled?: boolean;
 }
 
-export function VmActionsMenu({ vm, children, userAllowed, onAction }: VmActionsMenuProps) {
+export function VmActionsMenu({ vm, children, userAllowed, onAction, disabled }: VmActionsMenuProps) {
   const handleAction = (action: string) => {
     onAction?.(action, vm);
   };
@@ -49,7 +50,7 @@ export function VmActionsMenu({ vm, children, userAllowed, onAction }: VmActions
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end">
         {userAllowed["can_add_disk"] && (
-          <DropdownMenuItem onClick={() => handleAction("disk-add")}>
+          <DropdownMenuItem onClick={() => handleAction("disk-add")} disabled={disabled}>
             <HardDrive />
             磁盘新增
           </DropdownMenuItem>
@@ -61,28 +62,28 @@ export function VmActionsMenu({ vm, children, userAllowed, onAction }: VmActions
         </DropdownMenuItem>
 
         {userAllowed["can_set_role"] && (
-          <DropdownMenuItem onClick={() => handleAction("role-settings")}>
+          <DropdownMenuItem onClick={() => handleAction("role-settings")} disabled={disabled}>
             <UserCog />
             角色设置
           </DropdownMenuItem>
         )}
 
         {userAllowed["can_sync"] && (
-          <DropdownMenuItem onClick={() => handleAction("manual-sync")}>
+          <DropdownMenuItem onClick={() => handleAction("manual-sync")} disabled={disabled}>
             <RefreshCw />
             手动同步
           </DropdownMenuItem>
         )}
 
         {userAllowed["can_renew"] && (
-          <DropdownMenuItem onClick={() => handleAction("renew")}>
+          <DropdownMenuItem onClick={() => handleAction("renew")} disabled={disabled}>
             <Calendar />
             续期
           </DropdownMenuItem>
         )}
 
         {userAllowed["can_expand"] && (
-          <DropdownMenuItem onClick={() => handleAction("cpu-memory-expand")}>
+          <DropdownMenuItem onClick={() => handleAction("cpu-memory-expand")} disabled={disabled}>
             <Cpu />
             CPU/内存扩容
           </DropdownMenuItem>
@@ -97,7 +98,7 @@ export function VmActionsMenu({ vm, children, userAllowed, onAction }: VmActions
           isPoweredOn) && <DropdownMenuSeparator />}
 
         {isPoweredOff && userAllowed["can_start"] && (
-          <DropdownMenuItem onClick={() => handleAction("power-on")}>
+          <DropdownMenuItem onClick={() => handleAction("power-on")} disabled={disabled}>
             <Power />
             开机
           </DropdownMenuItem>
@@ -109,6 +110,7 @@ export function VmActionsMenu({ vm, children, userAllowed, onAction }: VmActions
               <DropdownMenuItem
                 onClick={() => handleAction("restart")}
                 className="text-destructive focus:text-destructive"
+                disabled={disabled}
               >
                 <RotateCw />
                 重启
@@ -118,6 +120,7 @@ export function VmActionsMenu({ vm, children, userAllowed, onAction }: VmActions
               <DropdownMenuItem
                 onClick={() => handleAction("shutdown")}
                 className="text-destructive focus:text-destructive"
+                disabled={disabled}
               >
                 <PowerOff />
                 关机
@@ -132,28 +135,28 @@ export function VmActionsMenu({ vm, children, userAllowed, onAction }: VmActions
           userAllowed["can_bind_project"]) && <DropdownMenuSeparator />}
 
         {userAllowed["can_transfer"] && (
-          <DropdownMenuItem onClick={() => handleAction("transfer")}>
+          <DropdownMenuItem onClick={() => handleAction("transfer")} disabled={disabled}>
             <Users />
             过户
           </DropdownMenuItem>
         )}
 
         {userAllowed["can_suspend"] && (
-          <DropdownMenuItem onClick={() => handleAction("suspend")}>
+          <DropdownMenuItem onClick={() => handleAction("suspend")} disabled={disabled}>
             <Pause />
             挂起
           </DropdownMenuItem>
         )}
 
         {userAllowed["can_request_approval"] && (
-          <DropdownMenuItem onClick={() => handleAction("apply-change")}>
+          <DropdownMenuItem onClick={() => handleAction("apply-change")} disabled={disabled}>
             <Edit />
             申请变更
           </DropdownMenuItem>
         )}
 
         {userAllowed["can_bind_project"] && (
-          <DropdownMenuItem onClick={() => handleAction("bind-product")}>
+          <DropdownMenuItem onClick={() => handleAction("bind-product")} disabled={disabled}>
             <Link />
             绑定产品
           </DropdownMenuItem>
@@ -167,6 +170,7 @@ export function VmActionsMenu({ vm, children, userAllowed, onAction }: VmActions
           <DropdownMenuItem
             onClick={() => handleAction("resource-recycle")}
             className="text-destructive focus:text-destructive"
+            disabled={disabled}
           >
             <Trash2 />
             资源回收
@@ -174,7 +178,7 @@ export function VmActionsMenu({ vm, children, userAllowed, onAction }: VmActions
         )}
 
         {userAllowed["can_archive"] && (
-          <DropdownMenuItem onClick={() => handleAction("resource-archive")}>
+          <DropdownMenuItem onClick={() => handleAction("resource-archive")} disabled={disabled}>
             <Archive />
             资源归档
           </DropdownMenuItem>

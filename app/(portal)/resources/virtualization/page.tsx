@@ -14,6 +14,7 @@ interface PageProps {
     like_name?: string;
     like_env?: string;
     vcenter?: string;
+    status?: string;
   }>;
 }
 
@@ -31,6 +32,7 @@ export default async function VirtualizationPage({ searchParams }: PageProps) {
       like_name: params.like_name,
       like_env: params.like_env,
       vcenter: params.vcenter,
+      status: params.status,
     });
   } catch (error) {
     // 如果遇到 401 错误（AccessToken 过期），清除 session 并重定向到登录页

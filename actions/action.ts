@@ -53,6 +53,7 @@ interface CreateActionLogRequest {
 export async function createActionLogAction(
   data: CreateActionLogRequest
 ): Promise<CreateActionLogResponse> {
+  console.log("createActionLogAction", data);
   return serverApi.post<CreateActionLogResponse>(
     `${API_BASE_URL}/actions`,
     data as unknown as Record<string, unknown>

@@ -24,7 +24,7 @@ function getRandomNonDefaultTheme(): TweakcnTheme {
     const randomIndex = Math.floor(Math.random() * nonDefaultThemes.length);
     return nonDefaultThemes[randomIndex].value;
   }
-  return "violet-bloom";
+  return "supabase";
 }
 
 function loadThemeCSS(theme: TweakcnTheme, linkRef: { current: HTMLLinkElement | null }, failedThemes: Set<string> = new Set()) {
@@ -84,7 +84,7 @@ function loadThemeCSS(theme: TweakcnTheme, linkRef: { current: HTMLLinkElement |
 }
 
 export function TweakcnThemeProvider({ children }: { children: ReactNode }) {
-  const [selectedTheme, setSelectedThemeState] = useState<TweakcnTheme>("violet-bloom");
+  const [selectedTheme, setSelectedThemeState] = useState<TweakcnTheme>("supabase");
   const linkRef = useRef<HTMLLinkElement | null>(null);
 
   useEffect(() => {
@@ -106,8 +106,8 @@ export function TweakcnThemeProvider({ children }: { children: ReactNode }) {
         loadThemeCSS(savedTheme, linkRef);
       }
     } else {
-      document.documentElement.setAttribute("data-theme", "violet-bloom");
-      loadThemeCSS("violet-bloom", linkRef);
+      document.documentElement.setAttribute("data-theme", "supabase");
+      loadThemeCSS("supabase", linkRef);
     }
   }, []);
 
@@ -140,7 +140,7 @@ export function TweakcnThemeProvider({ children }: { children: ReactNode }) {
             }, {} as Record<string, string | null>)
           )};
                 
-                var themeToApply = "violet-bloom";
+                var themeToApply = "supabase";
                 
                 if (savedTheme && themes.includes(savedTheme)) {
                   if (savedTheme === "default") {

@@ -69,3 +69,16 @@ export interface VirtualMachineDetail {
     network: VirtualNetwork[];
   } & VirtualMachineItem;
 }
+
+// 虚拟机状态枚举数据
+export interface VirtualMachineStatus {
+  value: string;
+  label: string;
+}
+
+export interface VirtualMachineStatusResponse {
+  success: boolean;
+  code: number;
+  message: string;
+  data: VirtualMachineStatus[];
+}

@@ -262,28 +262,30 @@ export function TicketPageClient({
                   <TabsTrigger value="approval">审批信息</TabsTrigger>
                   <TabsTrigger value="data">审批数据</TabsTrigger>
                 </TabsList>
-                <div className="flex gap-2">
-                  <Button
-                    variant="default"
-                    onClick={() => setApproveDialogOpen(true)}
-                    disabled={isApproving || isRejecting}
-                  >
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    {isApproving ? "审批中..." : "审批"}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => setRejectDialogOpen(true)}
-                    disabled={isApproving || isRejecting}
-                  >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    {isRejecting ? "驳回中..." : "驳回"}
-                  </Button>
-                </div>
+                {approvalData.data[0].finish_time === null && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="default"
+                      onClick={() => setApproveDialogOpen(true)}
+                      disabled={isApproving || isRejecting}
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      {isApproving ? "审批中..." : "审批"}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => setRejectDialogOpen(true)}
+                      disabled={isApproving || isRejecting}
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      {isRejecting ? "驳回中..." : "驳回"}
+                    </Button>
+                  </div>
+                )}
               </div>
               <TabsContent value="approval" className="mt-4">
                 <ApprovalTimeline
-                  tasks={approvalData.data[0].data.tasks}
+                  tasks={approvalData.data[0].tasks}
                 />
               </TabsContent>
               <TabsContent value="data" className="mt-4">

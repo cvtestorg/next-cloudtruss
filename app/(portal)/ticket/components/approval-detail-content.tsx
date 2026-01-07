@@ -22,9 +22,9 @@ export function ApprovalDetailContent({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">审批详情</h1>
+      <h1 className="text-2xl font-bold">审批详情111</h1>
       <div className="space-y-4">
-        <ApprovalTimeline tasks={data.data[0].data.tasks} />
+        <ApprovalTimeline tasks={data.data[0].tasks} />
       </div>
     </div>
   );

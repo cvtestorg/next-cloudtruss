@@ -12,11 +12,14 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
+import { getVirtualMachineStatusAction } from "@/actions/vm";
+import type { VirtualMachineStatus } from "@/types/vm";
 
 export interface FilterParams {
   like_name: string;
   like_env: string;
   vcenter: string;
+  status: string;
 }
 
 export function VmSearchFilterClient() {
@@ -28,12 +31,35 @@ export function VmSearchFilterClient() {
       like_name: searchParams.get("like_name") || "",
       like_env: searchParams.get("like_env") || "all",
       vcenter: searchParams.get("vcenter") || "all",
+      status: searchParams.get("status") || "all",
     }),
     [searchParams]
   );
 
   // 本地搜索输入值，用于防抖
   const [localSearchValue, setLocalSearchValue] = useState(filters.like_name);
+
+  // 获取状态列表
+  const [statusOptions, setStatusOptions] = useState<VirtualMachineStatus[]>([]);
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      setIsLoadingStatus(true);
+      try {
+        const response = await getVirtualMachineStatusAction();
+        if (response.success && response.data) {
+          setStatusOptions(response.data);
+        }
+      } catch (error) {
+        console.error("获取状态列表失败:", error);
+      } finally {
+        setIsLoadingStatus(false);
+      }
+    };
+
+    fetchStatus();
+  }, []);
 
   // 当 URL 参数变化时，同步本地值（例如重置或外部更新）
   useEffect(() => {
@@ -93,6 +119,10 @@ export function VmSearchFilterClient() {
     updateFilters({ vcenter: value });
   };
 
+  const handleStatusChange = (value: string) => {
+    updateFilters({ status: value });
+  };
+
   const handleReset = () => {
     router.push("/resources/virtualization");
   };
@@ -100,7 +130,8 @@ export function VmSearchFilterClient() {
   const hasActiveFilters =
     filters.like_name ||
     filters.like_env !== "all" ||
-    filters.vcenter !== "all";
+    filters.vcenter !== "all" ||
+    filters.status !== "all";
 
   return (
     <div className="space-y-4">
@@ -136,6 +167,24 @@ export function VmSearchFilterClient() {
           <SelectContent>
             <SelectItem value="all">全部 vCenter</SelectItem>
             <SelectItem value="VCSA-ZSC">VCSA-ZSC</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={filters.status}
+          onValueChange={handleStatusChange}
+          disabled={isLoadingStatus}
+        >
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder={isLoadingStatus ? "加载中..." : "状态"} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部状态</SelectItem>
+            {statusOptions.map((status) => (
+              <SelectItem key={status.value} value={status.value}>
+                {status.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 

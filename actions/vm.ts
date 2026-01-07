@@ -1,7 +1,11 @@
 "use server";
 
 import { serverApi } from "@/lib/fetch/server";
-import type { VirtualMachineList, VirtualMachineDetail } from "@/types/vm";
+import type {
+  VirtualMachineList,
+  VirtualMachineDetail,
+  VirtualMachineStatusResponse,
+} from "@/types/vm";
 
 const API_BASE_URL = "https://virtualization-api.gz.cvte.cn";
 
@@ -11,13 +15,14 @@ export interface VirtualMachineFilters {
   like_name?: string;
   like_env?: string;
   vcenter?: string;
+  status?: string;
 }
 
 /* 获取虚拟机列表 */
 export async function getVirtualMachinesAction(
   filters: VirtualMachineFilters = {}
 ): Promise<VirtualMachineList> {
-  const { page = 1, size = 20, like_name, like_env, vcenter } = filters;
+  const { page = 1, size = 20, like_name, like_env, vcenter, status } = filters;
 
   const params: Record<string, unknown> = {
     page,
@@ -28,6 +33,7 @@ export async function getVirtualMachinesAction(
   if (like_name) params.like_name = like_name;
   if (like_env && like_env !== "all") params.like_env = like_env;
   if (vcenter && vcenter !== "all") params.vcenter = vcenter;
+  if (status && status !== "all") params.status = status;
 
   const apiUrl = `${API_BASE_URL}/vm`;
   // console.log("[getVirtualMachinesAction] API Request:");
@@ -42,4 +48,11 @@ export async function getVirtualMachineDetailAction(
   vmId: string
 ): Promise<VirtualMachineDetail> {
   return serverApi.get<VirtualMachineDetail>(`${API_BASE_URL}/vm/${vmId}`);
+}
+
+/* 获取虚拟机状态枚举数据 */
+export async function getVirtualMachineStatusAction(): Promise<VirtualMachineStatusResponse> {
+  return serverApi.get<VirtualMachineStatusResponse>(
+    `${API_BASE_URL}/resources/vm/status/list`
+  );
 }

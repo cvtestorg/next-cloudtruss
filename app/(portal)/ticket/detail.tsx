@@ -15,13 +15,16 @@ async function ApprovalDetailData({
 }: {
   approvalId: string;
 }) {
-  try {
-    const data = await getApprovalAction(approvalId);
-    return <ApprovalDetailContent data={data} />;
-  } catch (error) {
+  const data = await getApprovalAction(approvalId).catch((error) => {
     console.error("获取审批详情失败:", error);
     notFound();
+  });
+
+  if (!data) {
+    notFound();
   }
+
+  return <ApprovalDetailContent data={data} />;
 }
 
 export default async function ApprovalDetail({ searchParams }: PageProps) {

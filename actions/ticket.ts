@@ -11,6 +11,7 @@ import type {
 } from "@/types/ticket";
 import { TICKET_TYPE_VIRTUALIZATION } from "@/types/ticket";
 
+// const API_BASE_URL = "http://172.17.228.34:8000";
 const API_BASE_URL = "https://mini-approval.gz.cvte.cn";
 
 export async function getTicketsAction(

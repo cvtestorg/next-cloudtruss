@@ -43,6 +43,21 @@ export function TicketTable({
     }
   };
 
+  const getStatusLabel = (status: string | undefined): string => {
+    if (!status) return "待审批";
+    
+    const statusMap: Record<string, string> = {
+      pending: "审批中",
+      in_progress: "执行中",
+      completed: "已完成",
+      canceled: "已取消",
+      cancled: "已取消", // 兼容拼写错误
+      on_hold: "已挂起",
+    };
+
+    return statusMap[status] || status;
+  };
+
   if (tickets.length === 0) {
     return (
       <Table>
@@ -98,15 +113,10 @@ export function TicketTable({
               className="font-medium cursor-pointer hover:underline"
               onClick={() => onDetailClick(ticket.id)}
             >
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-sm font-mono">
-                  {ticket.id}
-                </span>
-                <span>{ticket.title}</span>
-              </div>
+              {ticket.title}
             </TableCell>
             <TableCell>{ticket.type_name}</TableCell>
-            <TableCell>{ticket.status || "待审批"}</TableCell>
+            <TableCell>{getStatusLabel(ticket.status)}</TableCell>
             <TableCell className="text-right whitespace-nowrap">
               {formatDate(ticket.created_at)}
             </TableCell>
