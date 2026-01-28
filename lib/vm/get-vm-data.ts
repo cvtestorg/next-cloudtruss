@@ -20,6 +20,8 @@ export function getVmData(
     memory,
     status,
     power_status,
+    product,
+    product_line,
     owner,
     application,
     env,
@@ -31,6 +33,10 @@ export function getVmData(
     is_flash,
     vcenter,
     resource_type,
+    is_recycle,
+    create_at,
+    expire_date,
+    sync_time,
   } = vm;
 
   return {
@@ -43,6 +49,8 @@ export function getVmData(
     memory,
     status,
     power_status,
+    product,
+    product_line,
     owner,
     application,
     env,
@@ -54,5 +62,9 @@ export function getVmData(
     is_flash,
     vcenter,
     resource_type,
+    is_recycle,
+    create_at,
+    expire_date,
+    sync_time,
   };
 }

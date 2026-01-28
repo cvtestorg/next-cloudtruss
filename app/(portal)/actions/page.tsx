@@ -21,7 +21,7 @@ async function ActionListData({ searchParams }: { searchParams: PageProps["searc
 
   const queryParams = {
     page,
-    page_size: pageSize,
+    size: pageSize,
     ...(params.service && { service: params.service }),
     // 如果 status 为 "all" 或不存在，不添加 status 参数（后端会返回所有状态）
     // 否则使用指定的 status，如果没有则默认使用 RUNNING

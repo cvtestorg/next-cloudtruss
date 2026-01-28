@@ -21,7 +21,12 @@ import {
   Shield,
   Globe,
   UserCog,
-  Database
+  Database,
+  Hash,
+  Archive,
+  Recycle,
+  Calendar,
+  RefreshCw
 } from "lucide-react";
 import { StatusBadge } from "../components/status-badge";
 import { VmDetailActions } from "./components/vm-detail-actions";
@@ -173,6 +178,11 @@ export default async function VirtualMachineDetail({ params }: PageProps) {
           <CardContent>
             <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
               <div className="flex items-center gap-2">
+                <Hash className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground">UUID:</span>
+                <span className="font-mono text-xs">{vm.uuid}</span>
+              </div>
+              <div className="flex items-center gap-2">
                 <Server className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-muted-foreground">主机:</span>
                 <span className="font-medium">{vm.hostname}</span>
@@ -207,6 +217,25 @@ export default async function VirtualMachineDetail({ params }: PageProps) {
                 <span className="text-muted-foreground">角色:</span>
                 <span className="font-medium">{vm.role}</span>
               </div>
+              <div className="flex items-center gap-2">
+                <Box className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground">资源类型:</span>
+                <span className="font-medium">{vm.resource_type}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Archive className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground">归档状态:</span>
+                <Badge variant={vm.is_archive ? "secondary" : "outline"}>
+                  {vm.is_archive ? "已归档" : "未归档"}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <Recycle className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground">回收状态:</span>
+                <Badge variant={vm.is_recycle ? "destructive" : "outline"}>
+                  {vm.is_recycle ? "已回收" : "未回收"}
+                </Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -224,12 +253,17 @@ export default async function VirtualMachineDetail({ params }: PageProps) {
               <div className="flex items-center gap-2">
                 <Package className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-muted-foreground">产品线:</span>
-                <span className="font-medium">{vm.application}</span>
+                <span className="font-medium">{vm.product_line}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Box className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-muted-foreground">产品:</span>
-                <Badge variant="default" className="w-fit">{vm.application}</Badge>
+                <Badge variant="default" className="w-fit">{vm.product}</Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground">应用:</span>
+                <span className="font-medium">{vm.application}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -263,8 +297,37 @@ export default async function VirtualMachineDetail({ params }: PageProps) {
         </Card>
       </div>
 
+      {/* 时间信息 */}
+      <Card>
+        <CardContent>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3 text-sm">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">创建时间:</span>
+              <span className="font-medium">
+                {vm.create_at ? new Date(vm.create_at).toLocaleString('zh-CN') : '-'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">过期时间:</span>
+              <span className="font-medium">
+                {vm.expire_date ? new Date(vm.expire_date).toLocaleString('zh-CN') : '-'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">同步时间:</span>
+              <span className="font-medium">
+                {vm.sync_time ? new Date(vm.sync_time).toLocaleString('zh-CN') : '-'}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Tabs 区域 */}
-      <VmDetailTabs disks={disks} networks={networks} />
+      <VmDetailTabs disks={disks} networks={networks} vmId={vm.id} vmName={vm.name} />
     </div>
   );
 }

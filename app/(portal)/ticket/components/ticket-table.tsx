@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2 } from "lucide-react";
 import {
@@ -70,16 +69,13 @@ export function TicketTable({
               创建时间
             </TableHead>
             <TableHead className="text-right w-[1%] whitespace-nowrap">
-              更新时间
-            </TableHead>
-            <TableHead className="text-right w-[1%] whitespace-nowrap">
               操作
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <TableRow>
-            <TableCell colSpan={6} className="text-center text-muted-foreground">
+            <TableCell colSpan={5} className="text-center text-muted-foreground">
               暂无数据
             </TableCell>
           </TableRow>
@@ -99,9 +95,6 @@ export function TicketTable({
             创建时间
           </TableHead>
           <TableHead className="text-right w-[1%] whitespace-nowrap">
-            更新时间
-          </TableHead>
-          <TableHead className="text-right w-[1%] whitespace-nowrap">
             操作
           </TableHead>
         </TableRow>
@@ -119,9 +112,6 @@ export function TicketTable({
             <TableCell>{getStatusLabel(ticket.status)}</TableCell>
             <TableCell className="text-right whitespace-nowrap">
               {formatDate(ticket.created_at)}
-            </TableCell>
-            <TableCell className="text-right whitespace-nowrap">
-              {formatDate(ticket.updated_at)}
             </TableCell>
             <TableCell className="text-right whitespace-nowrap">
               <div className="flex items-center justify-end gap-2">

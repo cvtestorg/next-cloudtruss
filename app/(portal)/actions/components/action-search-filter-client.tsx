@@ -30,32 +30,36 @@ export function ActionSearchFilterClient() {
     return "service"; // 默认搜索服务
   }, [searchParams]);
 
-  // 使用状态来跟踪当前选择的搜索类型
-  const [searchType, setSearchType] = useState<"service" | "target">(currentSearchType);
+  // 从 URL 获取当前搜索值
+  const currentSearchValue = useMemo<string>(() => {
+    return searchParams.get("service") || searchParams.get("target") || "";
+  }, [searchParams]);
 
   // 本地输入框值（用于即时显示，不立即触发请求）
-  const [localSearchValue, setLocalSearchValue] = useState<string>(
-    searchParams.get("service") || searchParams.get("target") || ""
-  );
+  const [localSearchValue, setLocalSearchValue] = useState<string>(currentSearchValue);
 
   // 防抖定时器引用
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 当 URL 参数变化时，同步更新本地状态
+  // 使用 setTimeout 避免在 effect 中直接同步调用 setState
   useEffect(() => {
-    setSearchType(currentSearchType);
-    const urlValue = searchParams.get("service") || searchParams.get("target") || "";
-    setLocalSearchValue(urlValue);
-  }, [currentSearchType, searchParams]);
+    const urlValue = currentSearchValue;
+    if (localSearchValue !== urlValue) {
+      const timer = setTimeout(() => {
+        setLocalSearchValue(urlValue);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [currentSearchValue, localSearchValue]);
 
   const filters = useMemo<FilterParams>(
     () => ({
-      searchType: searchType,
-      searchValue:
-        searchParams.get("service") || searchParams.get("target") || "",
+      searchType: currentSearchType,
+      searchValue: currentSearchValue,
       status: searchParams.get("status") || "RUNNING",
     }),
-    [searchParams, searchType]
+    [searchParams, currentSearchType, currentSearchValue]
   );
 
   // 初始化时，如果 URL 中没有 status 参数，设置默认值为 RUNNING
@@ -78,13 +82,8 @@ export function ActionSearchFilterClient() {
       params.delete("target");
 
       // 根据搜索类型设置对应的参数
-      const finalSearchType = newFilters.searchType ?? searchType;
+      const finalSearchType = newFilters.searchType ?? currentSearchType;
       const finalSearchValue = newFilters.searchValue ?? filters.searchValue;
-
-      // 更新本地状态
-      if (newFilters.searchType !== undefined) {
-        setSearchType(newFilters.searchType);
-      }
 
       if (finalSearchValue) {
         params.set(finalSearchType, finalSearchValue);
@@ -104,7 +103,7 @@ export function ActionSearchFilterClient() {
       params.set("page", "1");
       router.push(`?${params.toString()}`);
     },
-    [router, searchParams, filters, searchType]
+    [router, searchParams, filters, currentSearchType]
   );
 
   const handleSearchTypeChange = (value: "service" | "target") => {

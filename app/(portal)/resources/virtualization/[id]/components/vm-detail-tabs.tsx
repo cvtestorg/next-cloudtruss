@@ -23,9 +23,11 @@ import type { VirtualDisk, VirtualNetwork } from "@/types/vm";
 interface VmDetailTabsProps {
   disks: VirtualDisk[];
   networks: VirtualNetwork[];
+  vmId: string;
+  vmName: string;
 }
 
-export function VmDetailTabs({ disks, networks }: VmDetailTabsProps) {
+export function VmDetailTabs({ disks, networks, vmId, vmName }: VmDetailTabsProps) {
   // 检查数据是否存在
   const hasDisks = disks && disks.length > 0;
   const hasNetworks = networks && networks.length > 0;
@@ -102,7 +104,7 @@ export function VmDetailTabs({ disks, networks }: VmDetailTabsProps) {
 
       {hasDisks && (
         <TabsContent value="disk" className="space-y-4">
-          <DiskTable disks={disks} />
+          <DiskTable disks={disks} vmId={vmId} vmName={vmName} />
         </TabsContent>
       )}
 

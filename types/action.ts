@@ -31,3 +31,14 @@ export interface CreateActionLogResponse {
   timestamp: string;
   data: ActionLog;
 }
+
+export interface GetActionLogsParams {
+  page?: number;
+  size?: number;
+  service?: string;
+  action?: string;
+  target?: string;
+  status?: string;
+  start_time?: string;
+  end_time?: string;
+}

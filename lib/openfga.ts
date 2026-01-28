@@ -73,7 +73,9 @@ export const fgaClient = new Proxy({} as OpenFgaClient, {
     // 运行时：正常创建和使用客户端
     try {
       const client = getFgaClient();
-      const value = (client as any)[prop];
+      // 使用类型断言避免any类型
+      // 先将client转换为unknown，再转换为Record<string | symbol, unknown>
+      const value = (client as unknown as Record<string | symbol, unknown>)[prop];
       
       // 如果是函数，绑定 this 上下文
       if (typeof value === "function") {
@@ -88,7 +90,8 @@ export const fgaClient = new Proxy({} as OpenFgaClient, {
           throw error;
         };
       }
-      throw error;
+      // 对于其他属性，返回一个安全的默认值
+      return undefined;
     }
   },
 });

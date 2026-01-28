@@ -1,4 +1,5 @@
 import { LayoutGrid } from "lucide-react";
+import Link from "next/link";
 import {
     Sidebar,
     SidebarContent,
@@ -37,17 +38,17 @@ export async function AppSidebarLayout({
             <Sidebar>
                 <SidebarHeaderComponent>
                     <div className="flex flex-col gap-1 px-2 py-2">
-                        <div className="flex items-center gap-2">
+                        <Link href="/" className="flex items-center gap-2 no-underline hover:opacity-80 transition-opacity">
                             <LayoutGrid className="size-5 text-primary" />
                             <span className="font-semibold text-lg">{siteConfig.name}</span>
-                        </div>
+                        </Link>
                         <p className="text-xs text-muted-foreground px-7 line-clamp-2">
                             {siteConfig.description}
                         </p>
                     </div>
                 </SidebarHeaderComponent>
                 <SidebarContent>
-                    <AppSidebarNav user={user} />
+                    <AppSidebarNav user={userInfo} />
                 </SidebarContent>
                 <SidebarFooter>
                     <AppSidebarFooter userInfo={userInfo} />

@@ -9,8 +9,8 @@ import type {
 const API_BASE_URL = "https://usercenter.gz.cvte.cn";
 
 export interface GetActionLogsParams {
-  page: number;
-  page_size: number;
+  page?: number;
+  size?: number;
   service?: string;
   status?: string;
   target?: string;
@@ -21,8 +21,8 @@ export async function getActionLogsAction(
   params: GetActionLogsParams
 ): Promise<ActionLogListResponse> {
   const queryParams: Record<string, unknown> = {
-    page: params.page,
-    page_size: params.page_size,
+    page: params.page || 1,
+    page_size: params.size || 20,
   };
 
   // 只在有值的时候添加过滤参数

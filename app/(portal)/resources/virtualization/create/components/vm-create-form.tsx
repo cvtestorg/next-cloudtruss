@@ -76,6 +76,8 @@ export function VmCreateForm({
 
         toast.success("更新申请成功", {
           icon: <CheckCircle2 className="h-4 w-4" />,
+          duration: 3000,
+          position: "top-right",
         });
       } else {
         // 创建工单
@@ -89,14 +91,40 @@ export function VmCreateForm({
 
         toast.success("提交申请成功", {
           icon: <CheckCircle2 className="h-4 w-4" />,
+          duration: 3000,
+          position: "top-right",
         });
-        router.push("/ticket");
+        // 延迟跳转，让用户看到成功提示
+        setTimeout(() => {
+          router.push("/ticket");
+        }, 1500);
       }
     } catch (error) {
       console.error(ticketId ? "更新失败:" : "提交失败:", error);
+      // 更详细的错误提示
+      let errorMessage = error instanceof Error ? error.message : "未知错误";
+      let description = "请检查网络连接后重试";
+      
+      // 根据错误类型提供更具体的提示
+      if (errorMessage.includes("401")) {
+        errorMessage = "认证失败";
+        description = "请重新登录后重试";
+      } else if (errorMessage.includes("403")) {
+        errorMessage = "权限不足";
+        description = "您没有权限执行此操作";
+      } else if (errorMessage.includes("404")) {
+        errorMessage = "资源不存在";
+        description = "请检查请求的资源是否存在";
+      } else if (errorMessage.includes("500")) {
+        errorMessage = "服务器错误";
+        description = "服务器暂时无法处理请求，请稍后重试";
+      }
+      
       toast.error(ticketId ? "更新申请失败" : "提交申请失败", {
-        description: error instanceof Error ? error.message : "未知错误",
+        description: `${errorMessage}: ${description}`,
         icon: <XCircle className="h-4 w-4" />,
+        duration: 5000,
+        position: "top-right",
       });
     }
   };
@@ -138,10 +166,24 @@ export function VmCreateForm({
               </Popover>
             </div>
             <div className="flex gap-3">
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting
-                  ? ticketId ? "更新中..." : "提交中..."
-                  : ticketId ? "更新申请" : "提交申请"}
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="relative group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+              >
+                {isSubmitting && (
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-md animate-pulse">
+                    <svg className="h-4 w-4 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </span>
+                )}
+                <span className={isSubmitting ? "opacity-0 group-disabled:opacity-100 transition-opacity" : ""}>
+                  {isSubmitting
+                    ? ticketId ? "更新中..." : "提交中..."
+                    : ticketId ? "更新申请" : "提交申请"}
+                </span>
               </Button>
             </div>
           </div>

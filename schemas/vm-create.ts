@@ -40,6 +40,8 @@ export const vmHostInputSchema = z.object({
   // 以下字段仅资源管理员可见, 普通用户不显示, 但保留在 schema 中
   cluster: z.string().optional(),
   template: z.string().optional(),
+  vcluster: z.string().optional(),
+  vtemplate: z.string().optional(),
   vlan: z.string().optional(),
   ipAddress: z
     .string()
@@ -65,6 +67,7 @@ export const vmHostInputSchema = z.object({
     ),
   vswitch: z.string().optional(),
   vdatastore: z.string().optional(),
+  vstorageprofile: z.string().optional(),
   // 文本字段
   description: z.string().optional(),
   notes: z.string().optional(),

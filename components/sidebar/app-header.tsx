@@ -1,36 +1,51 @@
 "use client";
 
-import Link from "next/link";
-import { Ticket, FileText } from "lucide-react";
+import { useState } from "react";
+import { ClipboardCheck, LandPlot } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { ApprovalCenterSheet } from "@/components/approval-center-sheet";
+import { ActionCenterSheet } from "@/components/action-center-sheet";
 
 export function AppHeader() {
+    const [isApprovalSheetOpen, setIsApprovalSheetOpen] = useState(false);
+    const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
+
     return (
-        <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b px-4">
-            <SidebarTrigger />
-            <div className="flex items-center gap-2">
-                <Link href="/actions" title="操作记录">
+        <>
+            <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b px-4">
+                <SidebarTrigger />
+                <div className="flex items-center gap-1 mr-4">
                     <Button
                         variant="ghost"
-                        className="h-9 gap-2"
+                        size="icon"
+                        className="h-10 w-10"
+                        onClick={() => setIsActionSheetOpen(true)}
+                        title="操作记录"
                     >
-                        <FileText className="h-5 w-5" />
-                        <span>操作记录</span>
+                        <LandPlot className="h-5 w-5" />
                     </Button>
-                </Link>
-                <Separator orientation="vertical" className="h-6" />
-                <Link href="/ticket" title="审批中心">
+                    <Separator orientation="vertical" />
                     <Button
                         variant="ghost"
-                        className="h-9 gap-2"
+                        size="icon"
+                        className="h-10 w-10"
+                        onClick={() => setIsApprovalSheetOpen(true)}
+                        title="审批中心"
                     >
-                        <Ticket className="h-5 w-5" />
-                        <span>审批中心</span>
+                        <ClipboardCheck className="h-5 w-5" />
                     </Button>
-                </Link>
-            </div>
-        </header>
+                </div>
+            </header>
+            <ActionCenterSheet
+                open={isActionSheetOpen}
+                onOpenChange={setIsActionSheetOpen}
+            />
+            <ApprovalCenterSheet
+                open={isApprovalSheetOpen}
+                onOpenChange={setIsApprovalSheetOpen}
+            />
+        </>
     );
 }

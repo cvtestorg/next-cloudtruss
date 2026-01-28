@@ -4,6 +4,7 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { PanelLeftIcon } from "lucide-react"
+import { motion } from "motion/react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -205,6 +206,14 @@ function Sidebar({
     )
   }
 
+  // Extract motion-specific props to avoid type conflicts
+  // Create a new object and remove motion-specific event handlers
+  const restProps = Object.fromEntries(
+    Object.entries(props).filter(([key]) => {
+      return !["onDrag", "onDragStart", "onDragEnd", "onAnimationStart", "onAnimationEnd", "onAnimationIteration"].includes(key);
+    })
+  );
+
   return (
     <div
       className="group peer text-sidebar-foreground hidden md:block"
@@ -215,40 +224,73 @@ function Sidebar({
       data-slot="sidebar"
     >
       {/* This is what handles the sidebar gap on desktop */}
-      <div
+      <motion.div
         data-slot="sidebar-gap"
         className={cn(
-          "relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
-          "group-data-[collapsible=offcanvas]:w-0",
-          "group-data-[side=right]:rotate-180",
-          variant === "floating" || variant === "inset"
-            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
+          "relative bg-transparent",
+          "group-data-[side=right]:rotate-180"
         )}
+        initial={false}
+        animate={{
+          width: state === "collapsed"
+            ? collapsible === "offcanvas"
+              ? 0
+              : collapsible === "icon"
+              ? variant === "floating" || variant === "inset"
+                ? "calc(var(--sidebar-width-icon) + var(--spacing-4))"
+                : "var(--sidebar-width-icon)"
+              : "var(--sidebar-width)"
+            : "var(--sidebar-width)",
+        }}
+        transition={{
+          duration: 0.2,
+          ease: "easeInOut",
+        }}
       />
-      <div
+      <motion.div
         data-slot="sidebar-container"
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
-          side === "left"
-            ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
-            : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
-          // Adjust the padding for floating and inset variants.
+          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) md:flex",
+          side === "left" ? "left-0" : "right-0",
           variant === "floating" || variant === "inset"
-            ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l",
+            ? "p-2"
+            : "group-data-[side=left]:border-r group-data-[side=right]:border-l",
           className
         )}
-        {...props}
+        initial={false}
+        animate={{
+          x: state === "collapsed" && collapsible === "offcanvas"
+            ? side === "left"
+              ? "-100%"
+              : "100%"
+            : 0,
+          width: state === "collapsed" && collapsible === "icon"
+            ? variant === "floating" || variant === "inset"
+              ? "calc(var(--sidebar-width-icon) + var(--spacing-4) + 2px)"
+              : "var(--sidebar-width-icon)"
+            : "var(--sidebar-width)",
+        }}
+        transition={{
+          duration: 0.2,
+          ease: "easeInOut",
+        }}
+        {...restProps}
       >
-        <div
+        <motion.div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
           className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+          initial={false}
+          animate={{
+            opacity: 1,
+          }}
+          transition={{
+            duration: 0.15,
+          }}
         >
           {children}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   )
 }
@@ -258,24 +300,39 @@ function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, state } = useSidebar()
 
   return (
-    <Button
-      data-sidebar="trigger"
-      data-slot="sidebar-trigger"
-      variant="ghost"
-      size="icon"
-      className={cn("size-7", className)}
-      onClick={(event) => {
-        onClick?.(event)
-        toggleSidebar()
-      }}
-      {...props}
+    <motion.div
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
     >
-      <PanelLeftIcon />
-      <span className="sr-only">Toggle Sidebar</span>
-    </Button>
+      <Button
+        data-sidebar="trigger"
+        data-slot="sidebar-trigger"
+        variant="ghost"
+        size="icon"
+        className={cn("size-7", className)}
+        onClick={(event) => {
+          onClick?.(event)
+          toggleSidebar()
+        }}
+        {...props}
+      >
+        <motion.div
+          animate={{
+            rotate: state === "collapsed" ? 180 : 0,
+          }}
+          transition={{
+            duration: 0.2,
+            ease: "easeInOut",
+          }}
+        >
+          <PanelLeftIcon />
+        </motion.div>
+        <span className="sr-only">Toggle Sidebar</span>
+      </Button>
+    </motion.div>
   )
 }
 
@@ -607,9 +664,7 @@ function SidebarMenuSkeleton({
   showIcon?: boolean
 }) {
   // Random width between 50 to 90%.
-  const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`
-  }, [])
+  const [width] = React.useState(() => `${Math.floor(Math.random() * 40) + 50}%`)
 
   return (
     <div
